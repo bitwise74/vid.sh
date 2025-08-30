@@ -13,6 +13,13 @@ Try it now [bitwise0x.dev](https://bitwise0x.dev)
 - Open source
 
 ## Screenshots
+<details>
+<summary>Click to expand screenshots</summary>
+
+<img width="500" height="500" alt="dashboard" src="https://github.com/user-attachments/assets/0eaec8fd-b1b0-4e88-b3a3-dfb6de08c730" /><br>
+<img width="500" height="500" alt="editor" src="https://github.com/user-attachments/assets/0d365726-df81-44d6-9290-7c02505c1b54" />
+
+</details>
 
 ## Getting started
 Go to [bitwise0x.dev](https://bitwise0x.dev), create a new account and enjoy
