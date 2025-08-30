@@ -1,5 +1,7 @@
 FROM debian:bookworm-slim as builder
 
+WORKDIR /build
+
 # Install required packages to compile
 RUN apt-get update && \
         apt-get install -y gcc g++ ca-certificates git make wget tar xz-utils && \
@@ -32,11 +34,6 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/* /usr/share/doc/* /usr/share/man/* /usr/share/info/*
 
 # Copy the UPX-compressed Go binary from the builder
-COPY --from=builder /vidsh /app/
-
-RUN useradd -m vidsh-runner
-USER vidsh-runner
-
-EXPOSE 8888
+COPY --from=builder /build/vidsh /app/vidsh
 
 ENTRYPOINT ["./vidsh"]

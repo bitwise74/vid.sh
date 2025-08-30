@@ -105,7 +105,7 @@ func FFmpegProcess(c *gin.Context, d *internal.Deps) {
 		done := make(chan error, 1)
 		// Enqueue can only error if the queue is full
 		err = d.JobQueue.Enqueue(&service.FFmpegJob{
-			ID:       util.RandStr(5),
+			ID:       jobID,
 			UserID:   userID,
 			FilePath: tempFile.Name(),
 			Output:   c.Writer,
@@ -166,7 +166,7 @@ func FFmpegProcess(c *gin.Context, d *internal.Deps) {
 	done := make(chan error, 1)
 	// Enqueue can only error if the queue is full
 	err = d.JobQueue.Enqueue(&service.FFmpegJob{
-		ID:       util.RandStr(5),
+		ID:       jobID,
 		UserID:   userID,
 		FilePath: tempFile.Name(),
 		Output:   tempProcessed,

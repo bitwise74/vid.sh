@@ -126,10 +126,10 @@ func NewRouter() (*gin.Engine, error) {
 		f.GET("/start", ffmpeg.FFMpegStart)
 
 		// GET /api/ffmpeg/progress	-> Returns the progress of a job
-		f.GET("/progress", func(c *gin.Context) { ffmpeg.FFmpegProcess(c, d) })
+		f.POST("/process", func(c *gin.Context) { ffmpeg.FFmpegProcess(c, d) })
 
 		// POST /api/ffmpeg/process	-> Processes a file provided in a multipart form
-		f.POST("/process", turnstile, ffmpeg.FFMpegStart)
+		f.GET("/progress", turnstile, ffmpeg.FFmpegProgress)
 	}
 
 	d.Argon = security.New()
