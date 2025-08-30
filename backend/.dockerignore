@@ -1,0 +1,6 @@
+.github
+.env
+.env.example
+database.db
+vidsh
+video-api

@@ -1,0 +1,74 @@
+:root {
+  --bs-primary: #7c3aed;
+  --bs-primary-rgb: 124, 58, 237;
+  --bs-secondary: #3b82f6;
+  --bs-secondary-rgb: 59, 130, 246;
+}
+
+.gradient-bg {
+  background: linear-gradient(135deg, #f3e8ff 0%, #dbeafe 50%, #e0e7ff 100%);
+}
+
+.gradient-primary {
+  background: linear-gradient(135deg, #7c3aed 0%, #3b82f6 100%);
+}
+
+.gradient-primary:hover {
+  background: linear-gradient(135deg, #6d28d9 0%, #2563eb 100%);
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, #7c3aed 0%, #3b82f6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.btn-gradient {
+  background: linear-gradient(135deg, #7c3aed 0%, #3b82f6 100%);
+  border: none;
+  color: white;
+}
+
+.btn-gradient:hover {
+  background: linear-gradient(135deg, #6d28d9 0%, #2563eb 100%);
+  color: white;
+}
+
+.card-hover {
+  transition: box-shadow 0.3s ease;
+}
+
+.card-hover:hover {
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+
+.bg-white-95 {
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+}
+
+.text-muted-foreground {
+  color: #6b7280 !important;
+}
+
+.border-muted {
+  border-color: #e5e7eb !important;
+}
+
+.aspect-video {
+  aspect-ratio: 16 / 9;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.sticky-top-custom {
+  position: sticky;
+  top: 0;
+  z-index: 1020;
+}

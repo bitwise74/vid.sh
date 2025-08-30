@@ -1,0 +1,5 @@
+.vscode
+*.db
+.env
+vidsh
+video-api
