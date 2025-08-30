@@ -39,7 +39,7 @@ Contributions are welcome! Please open an issue or discussion before submitting 
 
 ## Contact
 For issues, use [GitHub Issues](https://github.com/bitwise74/vid.sh/issues).  
-For commercial licensing inquiries, reach me at: bitwise0x@proton.me<br>
+For commercial licensing inquiries, reach me at: eryk.sarelo@proton.me<br>
 For more "casual" contact add me on discord @bit.wise.
 
 ## License
