@@ -191,45 +191,44 @@ func (q *JobQueue) runFFmpegJob(job *FFmpegJob) error {
 
 	if job.Args == nil {
 		if job.Opts == nil {
+			zap.L().Error("No arguments provided for FFmpeg job", zap.String("job_id", job.ID))
 			return errors.New("no arguments provided")
 		}
 
 		var args []string
-
 		args, duration, err = q.MakeFFmpegFlags(job.Opts, job.FilePath)
 		if err != nil {
+			zap.L().Error("Failed to generate FFmpeg flags", zap.String("job_id", job.ID), zap.Error(err))
 			return err
 		}
-
 		job.Args = &args
+		zap.L().Debug("FFmpeg flags generated", zap.Strings("args", *job.Args), zap.String("job_id", job.ID))
 	}
 
 	if job.UseGPU {
 		*job.Args = addHWAccelFlags(*job.Args)
+		zap.L().Debug("HW acceleration flags applied", zap.Strings("args", *job.Args), zap.String("job_id", job.ID))
 	}
 
 	cmd := exec.CommandContext(job.Ctx, "ffmpeg", *job.Args...)
-
-	zap.L().Debug("Running FFmpeg command", zap.String("cmd", cmd.String()))
+	zap.L().Debug("Running FFmpeg command", zap.String("cmd", cmd.String()), zap.String("job_id", job.ID))
 
 	stderrPipe, _ := cmd.StderrPipe()
 	defer stderrPipe.Close()
 
 	stderrBuf := &bytes.Buffer{}
-
 	go func() {
 		scanner := bufio.NewScanner(io.TeeReader(stderrPipe, stderrBuf))
 		for scanner.Scan() {
 			line := scanner.Text()
-
 			if line == "progress=end" {
 				ProgressMap.Store(job.UserID, FFMpegJobStats{
 					JobID:    job.ID,
 					Progress: 100.0,
 				})
+				zap.L().Debug("FFmpeg progress complete", zap.String("job_id", job.ID), zap.String("user_id", job.UserID))
 				return
 			}
-
 			if after, ok := strings.CutPrefix(line, "out_time_ms="); ok {
 				msStr := after
 				outTimeMs, err := strconv.ParseFloat(msStr, 64)
@@ -239,10 +238,10 @@ func (q *JobQueue) runFFmpegJob(job *FFmpegJob) error {
 						JobID:    job.ID,
 						Progress: percent,
 					})
+					zap.L().Debug("FFmpeg progress updated", zap.String("job_id", job.ID), zap.String("user_id", job.UserID), zap.Float64("progress", percent))
 				}
 			}
 		}
-
 		ProgressMap.Store(job.UserID, FFMpegJobStats{
 			JobID:    job.ID,
 			Progress: 100.0,
@@ -251,23 +250,27 @@ func (q *JobQueue) runFFmpegJob(job *FFmpegJob) error {
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
+		zap.L().Error("Failed to create stdout pipe for FFmpeg job", zap.String("job_id", job.ID), zap.Error(err))
 		return fmt.Errorf("failed to create stdout pipe: %v", err)
 	}
 	defer stdout.Close()
 
 	if err := cmd.Start(); err != nil {
+		zap.L().Error("Failed to start FFmpeg job", zap.String("job_id", job.ID), zap.Error(err))
 		return fmt.Errorf("failed to start ffmpeg, %w", err)
 	}
 
 	_, err = io.Copy(job.Output, stdout)
 	if err != nil {
+		zap.L().Error("Streaming error for FFmpeg job", zap.String("job_id", job.ID), zap.Error(err))
 		return fmt.Errorf("streaming error, %w", err)
 	}
 
 	if err := cmd.Wait(); err != nil {
-		zap.L().Error("FFmpeg failed", zap.Error(err), zap.String("stderr", stderrBuf.String()))
+		zap.L().Error("FFmpeg command failed", zap.String("job_id", job.ID), zap.Error(err), zap.String("stderr", stderrBuf.String()))
 		return fmt.Errorf("ffmpeg failed: %w", err)
 	}
 
+	zap.L().Debug("FFmpeg job completed successfully", zap.String("job_id", job.ID), zap.String("user_id", job.UserID))
 	return nil
 }

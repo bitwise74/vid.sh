@@ -24,6 +24,8 @@ func FFmpegProcess(c *gin.Context, d *internal.Deps) {
 	userID := c.MustGet("userID").(string)
 	jobID := c.Query("jobID")
 
+	zap.L().Debug("FFmpeg request received", zap.String("requestID", requestID), zap.String("userID", userID), zap.String("jobID", jobID))
+
 	if jobID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error":     "No job ID provided",
@@ -38,27 +40,27 @@ func FFmpegProcess(c *gin.Context, d *internal.Deps) {
 			"error":     "Failed to read form body",
 			"requestID": requestID,
 		})
-
-		zap.L().Error("Failed to read form body", zap.Error(err))
+		zap.L().Error("Failed to read form body", zap.Error(err), zap.String("requestID", requestID))
 		return
 	}
+	zap.L().Debug("Form body parsed successfully", zap.String("requestID", requestID), zap.String("filename", opts.File.Filename))
 
 	if code, err := validators.ProcessingOptsValidator(&opts, float64(opts.File.Size)); err != nil {
 		c.JSON(code, gin.H{
 			"error":     err.Error(),
 			"requestID": requestID,
 		})
+		zap.L().Debug("Processing options validation failed", zap.String("requestID", requestID), zap.Error(err))
 		return
 	}
+	zap.L().Debug("Processing options validated", zap.String("requestID", requestID))
 
 	code, f, err := validators.FileValidator(opts.File, nil, "")
 	if err != nil {
 		if code == http.StatusInternalServerError {
-			zap.L().Error("Failed to validate file", zap.Error(err))
-
+			zap.L().Error("Failed to validate file", zap.Error(err), zap.String("requestID", requestID))
 			err = errors.New("Internal server error")
 		}
-
 		c.JSON(code, gin.H{
 			"error":     err.Error(),
 			"requestID": requestID,
@@ -66,6 +68,7 @@ func FFmpegProcess(c *gin.Context, d *internal.Deps) {
 		return
 	}
 	defer f.Close()
+	zap.L().Debug("File validated successfully", zap.String("requestID", requestID), zap.String("filename", opts.File.Filename))
 
 	tempFile, err := os.CreateTemp("", "upload-*.mp4")
 	if err != nil {
@@ -73,12 +76,12 @@ func FFmpegProcess(c *gin.Context, d *internal.Deps) {
 			"error":     "Internal server error",
 			"requestID": requestID,
 		})
-
-		zap.L().Error("Failed to create temporary file", zap.Error(err))
+		zap.L().Error("Failed to create temporary file", zap.Error(err), zap.String("requestID", requestID))
 		return
 	}
 	defer tempFile.Close()
 	defer os.Remove(tempFile.Name())
+	zap.L().Debug("Temporary file created", zap.String("requestID", requestID), zap.String("tempFile", tempFile.Name()))
 
 	_, err = io.Copy(tempFile, f)
 	if err != nil {
@@ -86,10 +89,10 @@ func FFmpegProcess(c *gin.Context, d *internal.Deps) {
 			"error":     "Internal server error",
 			"requestID": requestID,
 		})
-
-		zap.L().Error("Failed to copy data to temporary file", zap.Error(err))
+		zap.L().Error("Failed to copy file to temp file", zap.Error(err), zap.String("requestID", requestID))
 		return
 	}
+	zap.L().Debug("File copied to temporary file", zap.String("requestID", requestID))
 
 	if !opts.SaveToCloud {
 		c.Header("Content-Type", "video/mp4")
@@ -98,12 +101,10 @@ func FFmpegProcess(c *gin.Context, d *internal.Deps) {
 		ctxReq := c.Request.Context()
 		ctxTimeout, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 		defer cancel()
-
 		ctx, cancelMerged := util.MergeContexts(ctxReq, ctxTimeout)
 		defer cancelMerged()
 
 		done := make(chan error, 1)
-		// Enqueue can only error if the queue is full
 		err = d.JobQueue.Enqueue(&service.FFmpegJob{
 			ID:       jobID,
 			UserID:   userID,
@@ -119,10 +120,10 @@ func FFmpegProcess(c *gin.Context, d *internal.Deps) {
 				"error":     "Job queue is full. Please wait a moment before trying again",
 				"requestID": requestID,
 			})
-
-			zap.L().Warn("FFmpeg job queue is full")
+			zap.L().Warn("FFmpeg job queue is full", zap.String("requestID", requestID))
 			return
 		}
+		zap.L().Debug("FFmpeg job enqueued", zap.String("requestID", requestID))
 
 		select {
 		case err := <-done:
@@ -131,6 +132,7 @@ func FFmpegProcess(c *gin.Context, d *internal.Deps) {
 					"error":     "Internal server error",
 					"requestID": requestID,
 				})
+				zap.L().Error("FFmpeg job failed", zap.String("requestID", requestID), zap.Error(err))
 				return
 			}
 		case <-ctx.Done():
@@ -138,8 +140,7 @@ func FFmpegProcess(c *gin.Context, d *internal.Deps) {
 				"error":     "Request was cancelled or timed out",
 				"requestID": requestID,
 			})
-
-			zap.L().Warn("Request context done before FFmpeg finished", zap.Error(ctx.Err()))
+			zap.L().Warn("Request context done before FFmpeg finished", zap.String("requestID", requestID), zap.Error(ctx.Err()))
 			return
 		}
 		return
@@ -151,20 +152,17 @@ func FFmpegProcess(c *gin.Context, d *internal.Deps) {
 			"error":     "Internal server error",
 			"requestID": requestID,
 		})
-
-		zap.L().Warn("Failed to create temp file for processing", zap.Error(err))
+		zap.L().Warn("Failed to create temp file for processed video", zap.String("requestID", requestID), zap.Error(err))
 		return
 	}
 
 	ctxReq := c.Request.Context()
 	ctxTimeout, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
-
 	ctx, cancelMerged := util.MergeContexts(ctxReq, ctxTimeout)
 	defer cancelMerged()
 
 	done := make(chan error, 1)
-	// Enqueue can only error if the queue is full
 	err = d.JobQueue.Enqueue(&service.FFmpegJob{
 		ID:       jobID,
 		UserID:   userID,
@@ -180,10 +178,10 @@ func FFmpegProcess(c *gin.Context, d *internal.Deps) {
 			"error":     "Job queue is full. Please wait a moment before trying again",
 			"requestID": requestID,
 		})
-
-		zap.L().Warn("FFmpeg job queue is full")
+		zap.L().Warn("FFmpeg job queue is full (cloud save)", zap.String("requestID", requestID))
 		return
 	}
+	zap.L().Debug("FFmpeg job enqueued for cloud save", zap.String("requestID", requestID))
 
 	select {
 	case err := <-done:
@@ -192,6 +190,7 @@ func FFmpegProcess(c *gin.Context, d *internal.Deps) {
 				"error":     "Internal server error",
 				"requestID": requestID,
 			})
+			zap.L().Error("FFmpeg job failed (cloud save)", zap.String("requestID", requestID), zap.Error(err))
 			return
 		}
 	case <-ctx.Done():
@@ -199,8 +198,7 @@ func FFmpegProcess(c *gin.Context, d *internal.Deps) {
 			"error":     "Request was cancelled or timed out",
 			"requestID": requestID,
 		})
-
-		zap.L().Warn("Request context done before FFmpeg finished", zap.Error(ctx.Err()))
+		zap.L().Warn("Request context done before FFmpeg finished (cloud save)", zap.String("requestID", requestID), zap.Error(ctx.Err()))
 		return
 	}
 
@@ -210,10 +208,10 @@ func FFmpegProcess(c *gin.Context, d *internal.Deps) {
 			"error":     "Internal server error",
 			"requestID": requestID,
 		})
-
-		zap.L().Warn("Failed to upload file to S3", zap.Error(err))
+		zap.L().Warn("Failed to upload file to S3", zap.String("requestID", requestID), zap.Error(err))
 		return
 	}
+	zap.L().Debug("File uploaded to cloud storage", zap.String("requestID", requestID), zap.String("filename", opts.File.Filename))
 
 	err = d.DB.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Create(&fileEnt).Error; err != nil {
@@ -238,10 +236,11 @@ func FFmpegProcess(c *gin.Context, d *internal.Deps) {
 			"error":     "Internal server error",
 			"requestID": requestID,
 		})
-
 		zap.L().Error("Database transaction failed", zap.String("requestID", requestID), zap.Error(err))
 		return
 	}
+	zap.L().Debug("Database transaction completed successfully", zap.String("requestID", requestID))
 
 	c.Status(http.StatusOK)
+	zap.L().Debug("FFmpeg request finished successfully", zap.String("requestID", requestID))
 }

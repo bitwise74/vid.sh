@@ -21,26 +21,31 @@ import (
 	"github.com/chenyahui/gin-cache/persist"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 // TODO: use redis
 var store = persist.NewMemoryStore(time.Minute)
 
 func NewRouter() (*gin.Engine, error) {
+	zap.L().Debug("NewRouter() entry")
 	d := &internal.Deps{
 		JobQueue: service.NewJobQueue(),
 	}
 
 	router := gin.New()
 
+	zap.L().Debug("Initializing database")
 	db, err := db.New()
 	if err != nil {
+		zap.L().Error("Failed to initialize SQLite database", zap.Error(err))
 		return nil, fmt.Errorf("failed to initialize SQLite database, %w", err)
 	}
 	d.DB = db
 
 	origins := strings.Split(os.Getenv("HOST_CORS"), ",")
 
+	zap.L().Debug("Setting up middleware and CORS", zap.Strings("origins", origins))
 	router.Use(
 		cors.New(cors.Config{
 			AllowOrigins:     origins,
@@ -133,23 +138,26 @@ func NewRouter() (*gin.Engine, error) {
 	}
 
 	d.Argon = security.New()
+	zap.L().Debug("Initializing S3 client")
 	s3, err := aws.NewS3()
 	if err != nil {
+		zap.L().Error("Failed to initialize S3 client", zap.Error(err))
 		return nil, fmt.Errorf("failed to initialize S3 client, %w", err)
 	}
 
 	d.S3 = s3
 	d.Uploader = service.NewUploader(d.JobQueue, s3)
 
-	// Start FFmpeg job queue
+	zap.L().Debug("Starting FFmpeg job queue worker pool")
 	d.JobQueue.StartWorkerPool()
 
-	// Check for useless tokens every day because they expire rarely
+	zap.L().Debug("Starting token cleanup goroutine")
 	go service.TokenCleanup(time.Hour*24, db)
 
-	// Check for expired accounts rarely because they have a week to verify
+	zap.L().Debug("Starting account cleanup goroutine")
 	go service.AccountCleanup(time.Hour*24*7, db, s3.C)
 
+	zap.L().Debug("NewRouter() exit")
 	return router, nil
 }
 
