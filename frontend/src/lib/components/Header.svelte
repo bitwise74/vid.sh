@@ -41,7 +41,7 @@
                   ],
         dashboard: () => [
             {
-                text: 'Upload Video',
+                text: 'Upload',
                 action: () => {
                     const input = document.createElement('input')
                     input.type = 'file'
@@ -153,10 +153,12 @@
                     <span class="fs-4 fw-bold text-dark">vid.sh</span>
                 </a>
 
-                {#if title}
-                    <div class="vr me-3"></div>
-                    <h1 class="fs-5 fw-semibold mb-0">{title}</h1>
-                {/if}
+                <div class="d-none d-sm-flex">
+                        {#if title}
+                        <div class="vr me-3"></div>
+                        <h1 class="fs-5 fw-semibold mb-0">{title}</h1>
+                        {/if}
+                </div>
             </div>
 
             <!-- Render buttons dynamically -->

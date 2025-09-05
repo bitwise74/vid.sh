@@ -181,14 +181,13 @@ export async function ExportVideo(o: ExportOpts, token: string) {
                 credentials: "include"
         })
 
+        const body = await jobIDResp.json()
         if (jobIDResp.status != 200) {
-                const body = await jobIDResp.json()
-
                 console.error("Failed to initialize ffmpeg job", body.requestID, body.error)
                 throw new Error(body.error)
         }
 
-        const jobID = (await jobIDResp.json()).jobID
+        const jobID = body.jobID
 
         const source = new EventSource(`${PUBLIC_BASE_URL}/api/ffmpeg/progress`, {
                 withCredentials: true
@@ -217,8 +216,8 @@ export async function ExportVideo(o: ExportOpts, token: string) {
                 return await resp.blob()
         }
 
-        const body = await resp.json()
-        throw new Error(body.error)
+        const bodyResp = await resp.json()
+        throw new Error(bodyResp.error)
 }
 
 export async function UploadVideo(f: File): Promise<Video | undefined> {
