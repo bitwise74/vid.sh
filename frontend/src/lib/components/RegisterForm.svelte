@@ -93,8 +93,7 @@
                         id="email"
                         placeholder="john@example.com"
                         bind:value={formData.email}
-                        oninput={(e) =>
-                            handleInputChange('email', (e.target as HTMLInputElement).value)}
+                        oninput={(e) => handleInputChange('email', (e.target as HTMLInputElement).value)}
                         required />
                 </div>
             </div>
@@ -111,30 +110,17 @@
                         id="password"
                         placeholder="Create a strong password"
                         bind:value={formData.password}
-                        oninput={(e) =>
-                            handleInputChange('password', (e.target as HTMLInputElement).value)}
+                        oninput={(e) => handleInputChange('password', (e.target as HTMLInputElement).value)}
                         required />
-                    <button
-                        type="button"
-                        class="btn btn-outline-secondary"
-                        onclick={() => (showPassword = !showPassword)}
-                        aria-label="Toggle password visibility">
+                    <button type="button" class="btn btn-outline-secondary" onclick={() => (showPassword = !showPassword)} aria-label="Toggle password visibility">
                         <i class="bi bi-eye{showPassword ? '-slash' : ''}"></i>
                     </button>
                 </div>
 
                 {#if formData.password}
                     <div class="mt-2">
-                        <div
-                            class="small d-flex align-items-center mb-1 {passwordValidation.minLength
-                                ? 'text-success'
-                                : 'text-muted'}">
-                            <div
-                                class="rounded-circle me-2 {passwordValidation.minLength
-                                    ? 'bg-success'
-                                    : 'bg-secondary'}"
-                                style="width: 4px; height: 4px;">
-                            </div>
+                        <div class="small d-flex align-items-center mb-1 {passwordValidation.minLength ? 'text-success' : 'text-muted'}">
+                            <div class="rounded-circle me-2 {passwordValidation.minLength ? 'bg-success' : 'bg-secondary'}" style="width: 4px; height: 4px;"></div>
                             <span>At least 8 characters</span>
                         </div>
                     </div>
@@ -153,17 +139,9 @@
                         id="confirmPassword"
                         placeholder="Confirm your password"
                         bind:value={formData.confirmPassword}
-                        oninput={(e) =>
-                            handleInputChange(
-                                'confirmPassword',
-                                (e.target as HTMLInputElement).value
-                            )}
+                        oninput={(e) => handleInputChange('confirmPassword', (e.target as HTMLInputElement).value)}
                         required />
-                    <button
-                        type="button"
-                        class="btn btn-outline-secondary"
-                        onclick={() => (showConfirmPassword = !showConfirmPassword)}
-                        aria-label="Toggle confirm password visibility">
+                    <button type="button" class="btn btn-outline-secondary" onclick={() => (showConfirmPassword = !showConfirmPassword)} aria-label="Toggle confirm password visibility">
                         <i class="bi bi-eye{showConfirmPassword ? '-slash' : ''}"></i>
                     </button>
                 </div>
@@ -179,11 +157,7 @@
                         type="checkbox"
                         id="agreeToTerms"
                         bind:checked={formData.agreeToTerms}
-                        onchange={(e) =>
-                            handleCheckboxChange(
-                                'agreeToTerms',
-                                (e.target as HTMLInputElement).checked
-                            )} />
+                        onchange={(e) => handleCheckboxChange('agreeToTerms', (e.target as HTMLInputElement).checked)} />
                     <label class="form-check-label small" for="agreeToTerms">
                         I agree to the
                         <a href="/terms" class="text-decoration-none">Terms of Service</a> and
@@ -192,10 +166,7 @@
                 </div>
             </div>
 
-            <button
-                type="submit"
-                class="btn btn-gradient w-100 mb-4"
-                disabled={isLoading || !passwordValidation.isValid}>
+            <button type="submit" class="btn btn-gradient w-100 mb-4" disabled={isLoading || !passwordValidation.isValid}>
                 {#if isLoading}
                     <span class="spinner-border spinner-border-sm me-2" role="status"></span>
                     Creating account...
@@ -207,28 +178,19 @@
             <div class="text-center mb-4">
                 <div class="position-relative">
                     <hr />
-                    <span
-                        class="position-absolute top-50 start-50 translate-middle bg-white px-3 small text-muted">
-                        Or continue with
-                    </span>
+                    <span class="position-absolute top-50 start-50 translate-middle bg-white px-3 small text-muted"> Or continue with </span>
                 </div>
             </div>
 
             <div class="row g-2 mb-4">
                 <div class="col-6">
-                    <button
-                        type="button"
-                        class="btn btn-outline-secondary w-100"
-                        aria-label="Sign in with Google">
+                    <button type="button" class="btn btn-outline-secondary w-100" aria-label="Sign in with Google">
                         <i class="bi bi-google me-1"></i>
                         Google
                     </button>
                 </div>
                 <div class="col-6">
-                    <button
-                        type="button"
-                        class="btn btn-outline-secondary w-100"
-                        aria-label="Sign in with GitHub">
+                    <button type="button" class="btn btn-outline-secondary w-100" aria-label="Sign in with GitHub">
                         <i class="bi bi-github me-1"></i>
                         GitHub
                     </button>

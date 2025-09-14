@@ -1,16 +1,14 @@
 {
-        "semi": false,
-        "singleQuote": true,
-        "printWidth": 100,
-        "tabWidth": 4,
-        "trailingComma": "none",
-        "plugins": [
-                "prettier-plugin-svelte"
-        ],
-        "bracketSameLine": true,
-        "pluginSearchDirs": false,
-        "svelteSortOrder": "none",
-        "svelteStrictMode": false,
-        "svelteBracketNewLine": false,
-        "svelteAllowShorthand": true
+    "semi": false,
+    "singleQuote": true,
+    "printWidth": 200,
+    "tabWidth": 4,
+    "trailingComma": "none",
+    "plugins": ["prettier-plugin-svelte"],
+    "bracketSameLine": true,
+    "overrides": [{ "files": "*.svelte", "options": { "parser": "svelte" } }],
+    "svelteSortOrder": "none",
+    "svelteStrictMode": false,
+    "svelteBracketNewLine": false,
+    "svelteAllowShorthand": true
 }

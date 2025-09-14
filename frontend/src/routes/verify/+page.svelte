@@ -36,13 +36,10 @@
         }
 
         try {
-            const res = await fetch(
-                `${PUBLIC_BASE_URL}/api/users/verify?token=${token}&user_id=${userID}`,
-                {
-                    method: 'POST',
-                    credentials: 'include'
-                }
-            )
+            const res = await fetch(`${PUBLIC_BASE_URL}/api/users/verify?token=${token}&user_id=${userID}`, {
+                method: 'POST',
+                credentials: 'include'
+            })
 
             if (res.ok) {
                 status = 'success'
@@ -75,58 +72,37 @@
     <Header title="Verify email" page="verify" />
 
     <main class="flex-grow-1">
-        <section
-            class="position-relative py-5 overflow-hidden"
-            style="padding-top: 6rem; padding-bottom: 6rem;">
+        <section class="position-relative py-5 overflow-hidden" style="padding-top: 6rem; padding-bottom: 6rem;">
             <div class="position-absolute top-0 start-0 w-100 h-100 gradient-bg"></div>
             <div class="container position-relative">
                 <div class="row justify-content-center">
                     <div class="col-lg-8 text-center">
                         {#if status === 'info'}
                             <div class="mb-2">
-                                <i
-                                    class="bi bi-envelope-check text-gradient"
-                                    style="font-size: 5rem"
-                                    role="status"></i>
+                                <i class="bi bi-envelope-check text-gradient" style="font-size: 5rem" role="status"></i>
                             </div>
                             <h2 class="fw-bold mb-3">One more thing...</h2>
                             <p class="text-muted">
-                                We've sent you a verification email. You must verify your account
-                                before using vid.sh. This is to prevent bots from abusing the
-                                website for infinite storage and free video processing. <span
-                                    class="fw-bold">
-                                    Click one of the buttons to go to your preferred email website</span>
+                                We've sent you a verification email. You must verify your account before using vid.sh. This is to prevent bots from abusing the website for infinite storage and free
+                                video processing. <span class="fw-bold"> Click one of the buttons to go to your preferred email website</span>
                             </p>
 
-                            <div
-                                class="d-flex gap-2 my-4 flex-wrap align-items-center justify-content-center">
-                                <a
-                                    href="https://mail.google.com"
-                                    target="_blank"
-                                    class="btn btn-outline-primary d-flex align-items-center gap-1">
+                            <div class="d-flex gap-2 my-4 flex-wrap align-items-center justify-content-center">
+                                <a href="https://mail.google.com" target="_blank" class="btn btn-outline-primary d-flex align-items-center gap-1">
                                     <i class="bi bi-google"></i> Gmail
                                 </a>
 
-                                <a
-                                    href="https://mail.proton.me"
-                                    target="_blank"
-                                    class="btn btn-outline-dark d-flex align-items-center gap-1">
+                                <a href="https://mail.proton.me" target="_blank" class="btn btn-outline-dark d-flex align-items-center gap-1">
                                     <i class="bi bi-lock-fill"></i> Proton Mail
                                 </a>
 
-                                <a
-                                    href="https://outlook.live.com"
-                                    target="_blank"
-                                    class="btn btn-outline-info d-flex align-items-center gap-1">
+                                <a href="https://outlook.live.com" target="_blank" class="btn btn-outline-info d-flex align-items-center gap-1">
                                     <i class="bi bi-microsoft"></i> Outlook
                                 </a>
                             </div>
 
                             {#if userID}
-                                <p class="text-muted-foreground">
-                                    Didn't receive the message? Check your spam folder or click send
-                                    again
-                                </p>
+                                <p class="text-muted-foreground">Didn't receive the message? Check your spam folder or click send again</p>
 
                                 <button {disabled} onclick={handleResendCode} class="btn btn-gradient">
                                     <i class="bi bi-arrow-clockwise"></i>

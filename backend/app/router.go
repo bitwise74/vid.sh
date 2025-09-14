@@ -92,6 +92,9 @@ func NewRouter() (*gin.Engine, error) {
 		// POST /api/users/verify	-> Verifies a new user
 		u.POST("/verify", func(c *gin.Context) { user.UserVerify(c, d) })
 
+		// POST /api/users/logout	-> Deletes all cookies to logout
+		u.POST("/logout", func(c *gin.Context) { user.Logout(c, d) })
+
 		// DELETE /api/users/:id 	-> Deletes a user account
 		// users.DELETE("/:id", jwt)
 	}

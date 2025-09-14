@@ -105,64 +105,47 @@
 </script>
 
 <div class="dropdown">
-    <button
-        class="btn btn-sm btn-outline-secondary"
-        type="button"
-        data-bs-toggle="dropdown"
-        aria-label="Options"
-        aria-expanded="false">
+    <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown" aria-label="Options" aria-expanded="false">
         <i class="bi bi-three-dots-vertical"></i>
     </button>
     <ul class="dropdown-menu">
         <li>
-            <button class="dropdown-item" onclick={() => handleVideoAction('play')}
-                ><i class="bi bi-play me-2"></i>Play</button>
+            <button class="dropdown-item" onclick={() => handleVideoAction('play')}><i class="bi bi-play me-2"></i>Play</button>
         </li>
         <li>
-            <button class="dropdown-item" onclick={() => handleVideoAction('rename')}
-                ><i class="bi bi-pencil me-2"></i>Rename</button>
+            <button class="dropdown-item" onclick={() => handleVideoAction('rename')}><i class="bi bi-pencil me-2"></i>Rename</button>
         </li>
         <li>
-            <button class="dropdown-item" onclick={() => handleVideoAction('edit')}
-                ><i class="bi bi-pencil me-2"></i>Edit</button>
+            <button class="dropdown-item" onclick={() => handleVideoAction('edit')}><i class="bi bi-pencil me-2"></i>Edit</button>
         </li>
         <li>
-            <button class="dropdown-item" onclick={() => handleVideoAction('assign-labels')}
-                ><i class="bi bi-tags me-2"></i>Assign Labels</button>
+            <button class="dropdown-item" onclick={() => handleVideoAction('assign-labels')}><i class="bi bi-tags me-2"></i>Assign Labels</button>
         </li>
         <li>
-            <button class="dropdown-item" onclick={() => handleVideoAction('download')}
-                ><i class="bi bi-download me-2"></i>Download</button>
+            <button class="dropdown-item" onclick={() => handleVideoAction('download')}><i class="bi bi-download me-2"></i>Download</button>
         </li>
         <li>
-            <button class="dropdown-item" onclick={() => handleVideoAction('share')}
-                ><i class="bi bi-share me-2"></i>Share</button>
+            <button class="dropdown-item" onclick={() => handleVideoAction('share')}><i class="bi bi-share me-2"></i>Share</button>
         </li>
         <li>
-            <button class="dropdown-item" onclick={() => handleVideoAction('copy-link')}
-                ><i class="bi bi-link me-2"></i>Copy Link</button>
+            <button class="dropdown-item" onclick={() => handleVideoAction('copy-link')}><i class="bi bi-link me-2"></i>Copy Link</button>
         </li>
         <li><hr class="dropdown-divider" /></li>
         <li>
-            <button class="dropdown-item text-danger" onclick={() => handleVideoAction('delete')}
-                ><i class="bi bi-trash me-2"></i>Delete</button>
+            <button class="dropdown-item text-danger" onclick={() => handleVideoAction('delete')}><i class="bi bi-trash me-2"></i>Delete</button>
         </li>
     </ul>
 </div>
 
 {#if showRenameModal}
-    <div
-        class="modal show d-flex justify-content-center align-items-center"
-        tabindex="-1"
-        style="background-color: rgba(0,0,0,0.5);">
+    <div class="modal show d-flex justify-content-center align-items-center" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-body">
                     <input type="text" class="form-control" bind:value={renameValue} />
                 </div>
                 <div class="modal-footer">
-                    <button class="btn btn-secondary" onclick={() => (showRenameModal = false)}
-                        >Cancel</button>
+                    <button class="btn btn-secondary" onclick={() => (showRenameModal = false)}>Cancel</button>
                     <button class="btn btn-primary" onclick={confirmRename}>Rename</button>
                 </div>
             </div>

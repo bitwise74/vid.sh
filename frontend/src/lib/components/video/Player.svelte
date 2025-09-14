@@ -1,33 +1,26 @@
 <script lang="ts">
+    import { trimEnd, trimStart, videoDuration, videoSource } from '$lib/stores/EditOptions'
     import { currentTime } from '$lib/stores/VideoStore'
     import RangeSlider from 'svelte-range-slider-pips'
+    import CropBox from '../editor/CropBox.svelte'
 
     let {
-        src,
-        duration,
-        trimStart,
-        trimEnd,
         onTimeUpdate
     }: {
-        src: string
-        duration: number
-        trimStart: number
-        trimEnd: number
         onTimeUpdate: (video: HTMLVideoElement) => void
     } = $props()
 
-    let video: HTMLVideoElement
+    let video: HTMLVideoElement = $state(null as any)
 
     let isPlaying = $state(false)
     let isMuted = $state(false)
     let volume = $state(0.75)
-
     let wasPaused = false
 
     function togglePlay() {
-        if (video.currentTime >= trimEnd && trimEnd > trimStart) {
-            video.currentTime = trimStart
-            currentTime.set(trimStart)
+        if (video.currentTime >= $trimEnd && $trimEnd > $trimStart) {
+            video.currentTime = $trimStart
+            currentTime.set($trimStart)
         }
 
         video.paused ? video.play() : video.pause()
@@ -43,6 +36,8 @@
     function handleSeekStop(e: CustomEvent<{ value: number }>) {
         video.currentTime = e.detail.value
         currentTime.set(e.detail.value)
+
+        console.log($trimStart, $trimEnd)
 
         if (wasPaused) {
             video.play()
@@ -76,71 +71,55 @@
 </script>
 
 <div>
-    <div class="position-relative aspect-video bg-dark rounded overflow-hidden mb-3">
+    <div class="position-relative aspect-video bg-dark rounded overflow-hidden mb-3 d-inline-block">
         <video
             bind:this={video}
             bind:currentTime={$currentTime}
-            {src}
+            src={$videoSource}
             class="w-100 h-100"
             style="object-fit: contain;"
             onclick={togglePlay}
             onplay={() => (isPlaying = true)}
             onpause={() => (isPlaying = false)}
-            ontimeupdate={() => onTimeUpdate(video)}
-            >
+            ontimeupdate={() => onTimeUpdate(video!)}>
             <track kind="captions" />
         </video>
+
+        <CropBox {video} />
     </div>
 
     <div>
-        <div class="mb-3">
+        <div style="cursor: pointer;">
             <RangeSlider
                 spring={false}
-                limits={[trimStart, trimEnd]}
-                max={duration}
+                limits={[$trimStart, $trimEnd]}
+                max={$videoDuration}
                 step={0.05}
                 value={$currentTime}
                 formatter={formatTime}
                 on:start={() => handleSeekStart()}
                 on:stop={(e) => handleSeekStop(e)} />
-            <div class="d-flex justify-content-between small text-muted">
-                <span>{formatTime($currentTime)}</span>
-                <span>{formatTime(duration)}</span>
-            </div>
+        </div>
+        <div class="d-flex justify-content-between small text-muted mb-3">
+            <span>{formatTime($currentTime)}</span>
+            <span>{formatTime($videoDuration)}</span>
         </div>
 
         <div class="d-flex align-items-center justify-content-between">
             <div class="d-flex align-items-center gap-2">
-                <button
-                    class="btn btn-outline-dark btn-sm"
-                    onclick={togglePlay}
-                    aria-label="Play/Pause">
+                <button class="btn btn-outline-dark btn-sm" onclick={togglePlay} aria-label="Play/Pause">
                     <i class="bi bi-{isPlaying ? 'pause' : 'play'}-fill"></i>
                 </button>
 
                 <div class="d-flex align-items-center gap-2">
-                    <button
-                        class="btn btn-outline-dark btn-sm"
-                        onclick={toggleMute}
-                        aria-label="Mute/Unmute">
+                    <button class="btn btn-outline-dark btn-sm" onclick={toggleMute} aria-label="Mute/Unmute">
                         <i class="bi bi-volume-{isMuted ? 'mute' : 'up'}-fill"></i>
                     </button>
-                    <input
-                        type="range"
-                        class="form-range"
-                        style="width: 80px;"
-                        min="0"
-                        max="1"
-                        step="0.01"
-                        value={volume}
-                        oninput={handleVolumeChange} />
+                    <input type="range" class="form-range" style="width: 80px;" min="0" max="1" step="0.01" value={volume} oninput={handleVolumeChange} />
                 </div>
             </div>
 
-            <button
-                class="btn btn-outline-dark btn-sm"
-                aria-label="Fullscreen"
-                onclick={() => video.requestFullscreen()}>
+            <button class="btn btn-outline-dark btn-sm" aria-label="Fullscreen" onclick={() => video.requestFullscreen()}>
                 <i class="bi bi-arrows-fullscreen"></i>
             </button>
         </div>

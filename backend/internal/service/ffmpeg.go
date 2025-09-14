@@ -80,11 +80,6 @@ func (q *JobQueue) worker() {
 		} else {
 			zap.L().Debug("FFmpeg job finished successfully")
 		}
-
-		ProgressMap.Range(func(key, value any) bool {
-			fmt.Println(key, value)
-			return true
-		})
 	}
 }
 
@@ -126,6 +121,11 @@ func (q *JobQueue) MakeFFmpegFlags(opts *validators.ProcessingOptions, p string)
 	}
 
 	args = append(args, "-c:v", encoder)
+
+	if opts.ShouldCrop {
+		cropStr := fmt.Sprintf("crop=%d:%d:%d:%d", opts.CropW, opts.CropH, opts.CropX, opts.CropY)
+		args = append(args, "-vf", cropStr)
+	}
 
 	if opts.LosslessExport {
 		switch encoder {

@@ -26,7 +26,7 @@
             await Login({ email, password })
             goto('/dashboard')
         } catch (err) {
-                console.error("Failed to login", err)
+            console.error('Failed to login', err)
             toastStore.error({
                 title: 'Failed to login',
                 message: err,
@@ -56,13 +56,7 @@
                     <span class="input-group-text">
                         <i class="bi bi-envelope text-muted"></i>
                     </span>
-                    <input
-                        type="email"
-                        class="form-control"
-                        id="email"
-                        placeholder="Enter your email"
-                        bind:value={$formData.email}
-                        oninput={(e) => handleInputChange('email', e)} />
+                    <input type="email" class="form-control" id="email" placeholder="Enter your email" bind:value={$formData.email} oninput={(e) => handleInputChange('email', e)} />
                 </div>
             </div>
 
@@ -80,11 +74,7 @@
                         bind:value={$formData.password}
                         oninput={(e) => handleInputChange('password', e)}
                         required />
-                    <button
-                        type="button"
-                        class="btn btn-outline-secondary"
-                        onclick={() => showPassword.set(!$showPassword)}
-                        aria-label="Toggle password visibility">
+                    <button type="button" class="btn btn-outline-secondary" onclick={() => showPassword.set(!$showPassword)} aria-label="Toggle password visibility">
                         <i class="bi bi-eye{$showPassword ? '-slash' : ''}"></i>
                     </button>
                 </div>
@@ -110,30 +100,19 @@
             <div class="text-center mb-4">
                 <div class="position-relative">
                     <hr />
-                    <span
-                        class="position-absolute top-50 start-50 translate-middle bg-white px-3 small text-muted">
-                        Or continue with (coming soon)
-                    </span>
+                    <span class="position-absolute top-50 start-50 translate-middle bg-white px-3 small text-muted"> Or continue with (coming soon) </span>
                 </div>
             </div>
 
             <div class="row g-2 mb-4">
                 <div class="col-6">
-                    <button
-                        type="button"
-                        class="btn btn-outline-secondary w-100"
-                        aria-label="Sign in with Google"
-                        disabled>
+                    <button type="button" class="btn btn-outline-secondary w-100" aria-label="Sign in with Google" disabled>
                         <i class="bi bi-google me-1"></i>
                         Google
                     </button>
                 </div>
                 <div class="col-6">
-                    <button
-                        type="button"
-                        class="btn btn-outline-secondary w-100"
-                        aria-label="Sign in with GitHub"
-                        disabled>
+                    <button type="button" class="btn btn-outline-secondary w-100" aria-label="Sign in with GitHub" disabled>
                         <i class="bi bi-github me-1"></i>
                         GitHub
                     </button>

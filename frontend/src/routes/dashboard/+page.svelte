@@ -87,7 +87,7 @@
         if (!e.dataTransfer) return
 
         const files = Array.from(e.dataTransfer.files)
-        const videoFile = files.find((f) => ["video/mp4", "video/quicktime", "video/x-matroska"].includes(f.type))
+        const videoFile = files.find((f) => ['video/mp4', 'video/quicktime', 'video/x-matroska'].includes(f.type))
 
         if (!videoFile) {
             toastStore.error({
@@ -98,12 +98,12 @@
             return
         }
 
-        if (videoFile.type === "video/x-matroska") {
-                toastStore.info({
-                        title: ".mkv file detected",
-                        message: "These files usually take longer to process",
-                        duration: 10000
-                })
+        if (videoFile.type === 'video/x-matroska') {
+            toastStore.info({
+                title: '.mkv file detected',
+                message: 'These files usually take longer to process',
+                duration: 10000
+            })
         }
 
         videos.set([
@@ -111,7 +111,7 @@
                 name: videoFile.name,
                 size: videoFile.size,
                 format: 'video/mp4',
-                created_at: Date.now()/1000,
+                created_at: Date.now() / 1000,
                 state: 'processing'
             } as Video,
             ...$videos
@@ -185,11 +185,7 @@
                     <span class="input-group-text">
                         <i class="bi bi-search"></i>
                     </span>
-                    <input
-                        type="text"
-                        class="form-control"
-                        placeholder="Search videos..."
-                        oninput={handleInput} />
+                    <input type="text" class="form-control" placeholder="Search videos..." oninput={handleInput} />
                 </div>
             </div>
             <div class="col-lg-3 col-md-3 col-sm-6">

@@ -51,9 +51,7 @@
                         const target = e.target as HTMLInputElement
                         if (!target.files || target.files.length === 0) return
 
-                        const videoFile = Array.from(target.files).find((f) =>
-                            ['video/mp4', 'video/quicktime', 'video/x-matroska'].includes(f.type)
-                        )
+                        const videoFile = Array.from(target.files).find((f) => ['video/mp4', 'video/quicktime', 'video/x-matroska'].includes(f.type))
                         if (!videoFile) {
                             toastStore.error({
                                 title: 'No valid files detected',
@@ -111,15 +109,9 @@
                 class: 'btn-dark'
             }
         ],
-        login: () => [
-            { text: 'Go Back', href: '/', icon: 'bi-arrow-left', class: 'btn-outline-dark' }
-        ],
-        verify: () => [
-            { text: 'Go Back', href: '/', icon: 'bi-arrow-left', class: 'btn-outline-dark' }
-        ],
-        register: () => [
-            { text: 'Go Back', href: '/', icon: 'bi-arrow-left', class: 'btn-outline-dark' }
-        ],
+        login: () => [{ text: 'Go Back', href: '/', icon: 'bi-arrow-left', class: 'btn-outline-dark' }],
+        verify: () => [{ text: 'Go Back', href: '/', icon: 'bi-arrow-left', class: 'btn-outline-dark' }],
+        register: () => [{ text: 'Go Back', href: '/', icon: 'bi-arrow-left', class: 'btn-outline-dark' }],
         editor: () => [
             loggedIn
                 ? {
@@ -145,19 +137,17 @@
         <div class="d-flex align-items-center justify-content-between py-3">
             <div class="d-flex align-items-center">
                 <a href="/" class="d-flex align-items-center text-decoration-none me-3">
-                    <div
-                        class="d-flex align-items-center justify-content-center rounded-2 gradient-primary me-2"
-                        style="width: 32px; height: 32px;">
+                    <div class="d-flex align-items-center justify-content-center rounded-2 gradient-primary me-2" style="width: 32px; height: 32px;">
                         <i class="bi bi-play-fill text-white"></i>
                     </div>
                     <span class="fs-4 fw-bold text-dark">vid.sh</span>
                 </a>
 
                 <div class="d-none d-sm-flex">
-                        {#if title}
+                    {#if title}
                         <div class="vr me-3"></div>
                         <h1 class="fs-5 fw-semibold mb-0">{title}</h1>
-                        {/if}
+                    {/if}
                 </div>
             </div>
 

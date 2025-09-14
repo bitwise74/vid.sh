@@ -1,9 +1,8 @@
 <script lang="ts">
     import { stats } from '$lib/stores/VideoStore'
 
-
     function convertGB(b: number, point = 2): string {
-        return (b/1000000000).toFixed(point)
+        return (b / 1000000000).toFixed(point)
     }
 </script>
 
@@ -32,10 +31,7 @@
                             {convertGB($stats.usedStorage)}/{convertGB($stats.maxStorage, 0) + ' GB'}
                         </h3>
                         <div class="progress mb-2" style="height: 8px;">
-                            <div
-                                class="progress-bar bg-dark"
-                                style="width: {($stats.usedStorage / $stats.maxStorage) * 100}%">
-                            </div>
+                            <div class="progress-bar bg-dark" style="width: {($stats.usedStorage / $stats.maxStorage) * 100}%"></div>
                         </div>
                     </div>
                     <i class="bi bi-hdd text-muted fs-2"></i>

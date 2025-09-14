@@ -37,49 +37,34 @@
         })
     }
 
-//     const tags = {
-//         tf2: '#495544',
-//         games: '#954951'
-//     }
+    //     const tags = {
+    //         tf2: '#495544',
+    //         games: '#954951'
+    //     }
 
-//     const vidTags = ['tf2', 'games']
+    //     const vidTags = ['tf2', 'games']
 </script>
 
 <div class="col-sm-6 col-lg-4 col-xl-3 mb-3">
     <div class="card d-flex flex-column h-100 border-0 shadow-sm card-hover">
         <div class="position-relative aspect-video bg-light overflow-hidden rounded-2">
             {#if video.state == 'processing'}
-                <img
-                    src={'placeholder.svg'}
-                    class="w-100 h-100 object-fit-cover"
-                    alt="placeholder" />
-                <div
-                    class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center flex-column opacity-1 gap-1"
-                    style="background: rgba(0,0,0,0.5);">
+                <img src={'placeholder.svg'} class="w-100 h-100 object-fit-cover" alt="placeholder" />
+                <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center flex-column opacity-1 gap-1" style="background: rgba(0,0,0,0.5);">
                     <i class="spinner-border text-white" role="status"></i>
                 </div>
                 <div class="position-absolute bottom-0 end-0 m-2">
                     <span class="badge bg-dark">Processing...</span>
                 </div>
             {:else}
-                <img
-                    src={`${PUBLIC_CDN_URL}/${video.thumb_key}`}
-                    alt={video.name}
-                    class="w-100 h-100"
-                    style="object-fit: contain;" />
-                <div
-                    class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center opacity-0 hover-overlay"
-                    style="background: rgba(0,0,0,0.3);">
-                    <button
-                        class="btn bg-black btn-sm text-white"
-                        onclick={() => currentVideoURL.set(`${PUBLIC_CDN_URL}/${video.file_key}`)}
-                        aria-label="Play video">
+                <img src={`${PUBLIC_CDN_URL}/${video.thumb_key}`} alt={video.name} class="w-100 h-100" style="object-fit: fill;" />
+                <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center opacity-0 hover-overlay" style="background: rgba(0,0,0,0.3);">
+                    <button class="btn bg-black btn-sm text-white" onclick={() => currentVideoURL.set(`${PUBLIC_CDN_URL}/${video.file_key}`)} aria-label="Play video">
                         <i class="bi bi-play-fill me-1"></i>Play
                     </button>
                 </div>
                 <div class="position-absolute bottom-0 end-0 m-2">
-                    <span class="badge bg-black bg-opacity-75"
-                        >{formatDuration(video.duration)}</span>
+                    <span class="badge bg-black bg-opacity-75">{formatDuration(video.duration)}</span>
                 </div>
             {/if}
         </div>
@@ -87,7 +72,7 @@
         <div class="card-body p-3">
             <div class="d-flex align-items-start justify-content-between mb-2">
                 <h6 class="card-title flex-grow-1 overflow-hidden pe-3">
-                    {video.name.substr(0, video.name.length-4)}
+                    {video.name.substr(0, video.name.length - 4)}
                 </h6>
                 <VideoDropdown fileKey={video.file_key} />
             </div>

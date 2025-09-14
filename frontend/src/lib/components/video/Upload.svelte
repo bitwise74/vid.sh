@@ -57,10 +57,7 @@
                         </p>
                     </div>
                 </div>
-                <button
-                    class="btn btn-outline-success btn-sm"
-                    aria-label="Clear video"
-                    onclick={onClear}>
+                <button class="btn btn-outline-success btn-sm" aria-label="Clear video" onclick={onClear}>
                     <i class="bi bi-x"></i>
                 </button>
             </div>
@@ -69,9 +66,7 @@
 {:else}
     <label
         for="video-upload"
-        class="card border-2 border-dashed {isDragOver
-            ? 'border-primary bg-primary bg-opacity-10'
-            : 'border-secondary'}"
+        class="card border-2 border-dashed {isDragOver ? 'border-primary bg-primary bg-opacity-10' : 'border-secondary'}"
         style="cursor: pointer; transition: all 0.3s ease;"
         ondrop={handleDrop}
         ondragover={handleDragOver}
@@ -80,17 +75,10 @@
         <div class="card-body p-5 text-center">
             <i class="bi bi-cloud-upload text-secondary display-4 mb-4"></i>
             <h5 class="fw-semibold mb-3">Upload your video</h5>
-            <p class="text-muted-foreground mb-4">
-                Drag and drop your video file here, or click to browse
-            </p>
+            <p class="text-muted-foreground mb-4">Drag and drop your video file here, or click to browse</p>
 
             <!-- Hidden input triggered by the wrapping label -->
-            <input
-                type="file"
-                accept="video/*"
-                onchange={handleFileSelect}
-                class="d-none"
-                id="video-upload" />
+            <input type="file" accept="video/*" onchange={handleFileSelect} class="d-none" id="video-upload" />
 
             <div class="btn btn-gradient mt-2">Choose File</div>
 
