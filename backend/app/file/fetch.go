@@ -1,8 +1,8 @@
 package file
 
 import (
-	"bitwise74/video-api/internal"
 	"bitwise74/video-api/internal/model"
+	"bitwise74/video-api/internal/types"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -10,9 +10,13 @@ import (
 	"gorm.io/gorm"
 )
 
-func FileFetch(c *gin.Context, d *internal.Deps) {
+type partialUserData struct {
+	AvatarHash string `json:"avatarHash"`
+	Username   string `json:"username"`
+}
+
+func Fetch(c *gin.Context, d *types.Dependencies) {
 	requestID := c.MustGet("requestID").(string)
-	userID := c.MustGet("userID").(string)
 
 	fileID := c.Param("id")
 	if fileID == "" {
@@ -26,8 +30,8 @@ func FileFetch(c *gin.Context, d *internal.Deps) {
 
 	var file model.File
 
-	err := d.DB.
-		Where("user_id = ? AND id = ?", userID, fileID).
+	err := d.DB.Gorm.
+		Where("id = ? AND private = ?", fileID, false).
 		First(&file).
 		Error
 	if err != nil {
@@ -49,5 +53,19 @@ func FileFetch(c *gin.Context, d *internal.Deps) {
 		return
 	}
 
-	c.JSON(http.StatusOK, file)
+	var user partialUserData
+	err = d.DB.Gorm.
+		Model(model.User{}).
+		Where("id = ?", file.UserID).
+		Select("avatar_hash", "username").
+		First(&user).
+		Error
+	if err != nil {
+		zap.L().Error("Failed to fetch partial user data. Continuing...", zap.Error(err))
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"file": file,
+		"user": user,
+	})
 }

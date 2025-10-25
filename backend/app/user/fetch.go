@@ -1,60 +1,46 @@
 package user
 
 import (
-	"bitwise74/video-api/internal"
-	"bitwise74/video-api/internal/model"
+	"bitwise74/video-api/internal/redis"
+	"bitwise74/video-api/internal/types"
+	"context"
 	"net/http"
-	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
 
-func UserFetch(c *gin.Context, d *internal.Deps) {
+func Fetch(c *gin.Context, d *types.Dependencies) {
 	requestID := c.MustGet("requestID").(string)
 	userID := c.MustGet("userID").(string)
 
-	var videos []model.File
+	if redis.CheckCache("user:"+userID, c) {
+		return
+	}
 
-	err := d.DB.
-		Where("user_id = ?", userID).
-		Order("created_at desc").
-		Limit(10).
-		Find(&videos).
-		Error
+	user, err := d.DB.FetchUserDataByID(userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error":     "Internal server error",
 			"requestID": requestID,
 		})
 
-		zap.L().Error("Failed to fetch initial user data", zap.Error(err))
+		zap.L().Error("Failed to fetch user data",
+			zap.String("requestID", requestID),
+			zap.String("userID", userID),
+			zap.Error(err),
+		)
 		return
 	}
 
-	for i, file := range videos {
-		version := strconv.Itoa(file.Version)
-		videos[i].FileKey = file.FileKey + "?v=" + version
-		videos[i].ThumbKey = file.ThumbKey + "?v=" + version
+	c.JSON(http.StatusOK, user)
+
+	if err := redis.Rdb.Set(context.Background(), "user:"+userID, user, time.Minute*5).Err(); err != nil {
+		zap.L().Error("Failed to set user cache",
+			zap.String("requestID", requestID),
+			zap.String("userID", userID),
+			zap.Error(err),
+		)
 	}
-
-	var stats model.Stats
-	err = d.DB.
-		Where("user_id = ?", userID).
-		First(&stats).
-		Error
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":     "Internal server error",
-			"requestID": requestID,
-		})
-
-		zap.L().Error("Failed to fetch initial user data", zap.Error(err))
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"videos": videos,
-		"stats":  stats,
-	})
 }

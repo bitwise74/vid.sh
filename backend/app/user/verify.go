@@ -1,8 +1,8 @@
 package user
 
 import (
-	"bitwise74/video-api/internal"
 	"bitwise74/video-api/internal/model"
+	"bitwise74/video-api/internal/types"
 	"net/http"
 	"time"
 
@@ -17,7 +17,7 @@ type partialVerifToken struct {
 	Used      bool
 }
 
-func UserVerify(c *gin.Context, d *internal.Deps) {
+func Verify(c *gin.Context, d *types.Dependencies) {
 	requestID := c.MustGet("requestID").(string)
 
 	token := c.Query("token")
@@ -40,8 +40,8 @@ func UserVerify(c *gin.Context, d *internal.Deps) {
 
 	var verifRecord partialVerifToken
 
-	err := d.DB.
-		Model(model.VerificationToken{}).
+	err := d.DB.Gorm.
+		Model(model.Token{}).
 		Where("user_id = ? AND token = ?", userID, token).
 		Select("expires_at", "purpose", "used").
 		First(&verifRecord).
@@ -80,30 +80,26 @@ func UserVerify(c *gin.Context, d *internal.Deps) {
 		return
 	}
 
-	err = d.DB.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Model(&model.VerificationToken{}).
-			Where("user_id = ? AND token = ?", userID, token).
-			Updates(map[string]any{
-				"used":    true,
-				"used_at": time.Now(),
-			}).Error; err != nil {
-			return err
-		}
+	tx := d.DB.Gorm.Begin()
 
-		if err := tx.Model(&model.User{}).
-			Where("id = ?", userID).
-			Updates(map[string]any{
-				"verified":   true,
-				"expires_at": nil,
-			}).Error; err != nil {
-			return err
-		}
+	tx.Model(&model.Token{}).
+		Where("user_id = ? AND token = ?", userID, token).
+		Updates(map[string]any{
+			"used":    true,
+			"used_at": time.Now(),
+		})
 
-		return nil
-	})
+	tx.Model(&model.User{}).
+		Where("id = ?", userID).
+		Updates(map[string]any{
+			"verified":   true,
+			"expires_at": nil,
+		})
+
+	err = tx.Commit().Error
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":     "Failed to validate user",
+			"error":     "Internal server error",
 			"requestID": requestID,
 		})
 		zap.L().Error("Failed to update user and token in transaction", zap.Error(err))

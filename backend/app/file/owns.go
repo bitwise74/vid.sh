@@ -1,18 +1,26 @@
 package file
 
 import (
-	"bitwise74/video-api/internal"
 	"bitwise74/video-api/internal/model"
+	"bitwise74/video-api/internal/redis"
+	"bitwise74/video-api/internal/types"
+	"context"
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
-func FileOwns(c *gin.Context, d *internal.Deps) {
+func FileOwns(c *gin.Context, d *types.Dependencies) {
 	requestID := c.MustGet("requestID").(string)
 	userID := c.MustGet("userID").(string)
+
+	if redis.CheckCache("file_owns:"+userID+":"+c.Param("id"), c) {
+		return
+	}
 
 	fileID := c.Param("id")
 	if fileID == "" {
@@ -24,7 +32,7 @@ func FileOwns(c *gin.Context, d *internal.Deps) {
 	}
 
 	var owns bool
-	err := d.DB.
+	err := d.DB.Gorm.
 		Model(model.File{}).
 		Where("id = ? AND user_id = ?", fileID, userID).
 		Select("count(*) > 0").
@@ -48,10 +56,14 @@ func FileOwns(c *gin.Context, d *internal.Deps) {
 		return
 	}
 
-	if owns {
-		c.JSON(http.StatusOK, gin.H{"owns": true})
-		return
+	code := http.StatusOK
+	if !owns {
+		code = http.StatusForbidden
 	}
 
-	c.JSON(http.StatusForbidden, gin.H{"owns": false})
+	c.JSON(code, gin.H{"owns": owns})
+
+	if err := redis.Rdb.Set(context.TODO(), "file_owns:"+userID+":"+fileID, `{"owns": `+strconv.FormatBool(owns)+`}`, time.Minute*15).Err(); err != nil {
+		zap.L().Error("Failed to set cache for file owns", zap.Error(err))
+	}
 }

@@ -67,9 +67,9 @@ func RateLimiterMiddleware(config RateLimiterConfig) gin.HandlerFunc {
 		limiter := getVisitor(ip, config.RequestsPerSecond, config.Burst)
 
 		if !limiter.Allow() {
-			c.JSON(http.StatusTooManyRequests, gin.H{
-				"error": "Too many requests",
-			})
+			// c.Header("Retry-After", "30")
+			c.Status(http.StatusTooManyRequests)
+			c.Abort()
 			return
 		}
 

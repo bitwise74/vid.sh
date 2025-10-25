@@ -4,13 +4,9 @@ import (
 	"fmt"
 	"os"
 	"strings"
-
-	"go.uber.org/zap"
 )
 
 func DetectGPU() (string, error) {
-	zap.L().Debug("Trying to detect gpu for hardware acceleration")
-
 	files, err := os.ReadDir("/dev/dri")
 	if err != nil {
 		return "", fmt.Errorf("failed to read files in /dev/dri, %w", err)

@@ -7,13 +7,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func BodySizeLimiter(maxBytes int64) gin.HandlerFunc {
+func NewBodySizeLimiter(maxBytes int64) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Fast reject for legit requests
 		if c.Request.ContentLength > maxBytes {
-			c.JSON(http.StatusBadRequest, gin.H{
+			c.JSON(http.StatusRequestEntityTooLarge, gin.H{
 				"error": "Request body size exceeds limit",
 			})
+			c.Abort()
 			return
 		}
 
@@ -26,6 +27,7 @@ func BodySizeLimiter(maxBytes int64) gin.HandlerFunc {
 					"error": "Request body size exceeds limit",
 				})
 			}
+			c.Abort()
 			return
 		}
 	}

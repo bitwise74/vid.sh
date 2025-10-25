@@ -41,7 +41,7 @@ func (u *Uploader) Do(p, name, userID string, override ...string) (*model.File, 
 
 	videoStat, _ := videoFile.Stat()
 
-	thumbPath, err := MakeThumbnail(p, u.JobQueue, userID)
+	thumbPath, err := MakeThumbnail(p, userID, u.JobQueue)
 	if err != nil {
 		return nil, fmt.Errorf("failed to upload to S3, %w", err)
 	}
@@ -78,7 +78,7 @@ func (u *Uploader) Do(p, name, userID string, override ...string) (*model.File, 
 			Bucket:       u.S3.Bucket,
 			Key:          aws.String(key + ".webp"),
 			Body:         thumbFile,
-			CacheControl: aws.String("public, max-age=31536000, immutable"),
+			CacheControl: aws.String("public, max-age=86400, stale-while-revalidate=3600"),
 			ContentType:  aws.String("image/webp"),
 		})
 		if err != nil {
@@ -109,7 +109,7 @@ func (u *Uploader) Do(p, name, userID string, override ...string) (*model.File, 
 			Body:          videoFile,
 			ContentLength: aws.Int64(videoStat.Size()),
 			ContentType:   aws.String("video/mp4"),
-			CacheControl:  aws.String("public, max-age=31536000, immutable"),
+			CacheControl:  aws.String("public, max-age=3600, stale-while-revalidate=60"),
 		}
 
 		var err error
@@ -168,7 +168,6 @@ func (u *Uploader) Do(p, name, userID string, override ...string) (*model.File, 
 	fileEnt := &model.File{
 		UserID:       userID,
 		FileKey:      key + ".mp4",
-		ThumbKey:     key + ".webp",
 		OriginalName: name,
 		Format:       "video/mp4",
 		Size:         videoStat.Size(),

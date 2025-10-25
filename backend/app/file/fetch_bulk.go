@@ -1,71 +1,50 @@
 package file
 
 import (
-	"bitwise74/video-api/internal"
 	"bitwise74/video-api/internal/model"
+	"bitwise74/video-api/internal/types"
+	"fmt"
 	"net/http"
 	"slices"
-	"strconv"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
-	"gorm.io/gorm"
 )
 
-// AZ = A - Z as in alphabetic same for ZA
-var validSortOpts = []string{"newest", "oldest", "az", "za", "size-asc", "size-desc"}
+type filterOpts struct {
+	Page  int    `json:"page"`
+	Limit int    `json:"limit"`
+	Sort  string `json:"sort"`
+	Tags  string `json:"tags"`
+}
 
-func FileFetchBulk(c *gin.Context, d *internal.Deps) {
+var (
+	validSortOpts   = []string{"newest", "oldest", "az", "za", "size-asc", "size-desc"}
+	validResultOpts = []int{10, 20, 50, 100, 250} // Same as limit options
+)
+
+func FetchBulk(c *gin.Context, d *types.Dependencies) {
 	requestID := c.MustGet("requestID").(string)
 	userID := c.MustGet("userID").(string)
 
-	pageStr := c.DefaultQuery("page", "0")
-	page, err := strconv.Atoi(pageStr)
-	if err != nil {
+	data := filterOpts{
+		Limit: 20,
+		Page:  0,
+		Sort:  "newest",
+		Tags:  "",
+	}
+
+	if err := c.Bind(&data); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error":     "Page must be a number",
+			"error":     "Malformed or invalid query string",
 			"requestID": requestID,
 		})
+
+		zap.L().Warn("Failed to bind fetch bulk query", zap.Error(err))
 		return
 	}
 
-	if page < 0 {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error":     "Page can't be negative",
-			"requestID": requestID,
-		})
-		return
-	}
-
-	limitStr := c.DefaultQuery("limit", "10")
-	limit, err := strconv.Atoi(limitStr)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error":     "Limit must be a number",
-			"requestID": requestID,
-		})
-		return
-	}
-
-	if limit <= 0 {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error":     "Limit must be greater than 0",
-			"requestID": requestID,
-		})
-		return
-	}
-
-	if limit > 250 {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error":     "Limit must be smaller than 250",
-			"requestID": requestID,
-		})
-		return
-	}
-
-	sort := strings.ToLower(c.DefaultQuery("sort", "newest"))
-	if !slices.Contains(validSortOpts, sort) {
+	if !slices.Contains(validSortOpts, data.Sort) {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error":     "Invalid sorting option",
 			"requestID": requestID,
@@ -73,54 +52,52 @@ func FileFetchBulk(c *gin.Context, d *internal.Deps) {
 		return
 	}
 
-	order := ""
+	fmt.Println(data.Limit)
 
+	if !slices.Contains(validResultOpts, data.Limit) {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":     "Invalid limit option",
+			"requestID": requestID,
+		})
+		return
+	}
+
+	page := max(data.Page, 0)
+	limit := min(max(data.Limit, 1), 250)
+	sort := data.Sort
+
+	order := "created_at desc"
 	switch sort {
 	case "newest":
 		order = "created_at desc"
 	case "oldest":
 		order = "created_at asc"
 	case "az":
-		order = "name"
+		order = "original_filename asc"
 	case "za":
-		order = "name desc"
+		order = "original_filename desc"
 	case "size-asc":
-		order = "size asc"
+		order = "file_size asc"
 	case "size-desc":
-		order = "size desc"
+		order = "file_size desc"
 	}
 
-	offset := page * limit
 	var entries []model.File
 
-	err = d.DB.
+	err := d.DB.Gorm.
 		Where("user_id = ?", userID).
 		Order(order).
-		Offset(offset).
 		Limit(limit).
+		Offset(limit * page).
 		Find(&entries).
 		Error
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, gin.H{
-				"error":     "No results",
-				"requestID": requestID,
-			})
-			return
-		}
-
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error":     "Internal server error",
 			"requestID": requestID,
 		})
 		zap.L().Error("Failed to lookup user files", zap.Error(err))
 		return
-	}
-
-	for i, file := range entries {
-		version := strconv.Itoa(file.Version)
-		entries[i].FileKey = file.FileKey + "?v=" + version
-		entries[i].ThumbKey = file.ThumbKey + "?v=" + version
 	}
 
 	c.JSON(http.StatusOK, entries)

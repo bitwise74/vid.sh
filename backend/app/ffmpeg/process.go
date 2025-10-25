@@ -1,9 +1,10 @@
 package ffmpeg
 
 import (
-	"bitwise74/video-api/internal"
 	"bitwise74/video-api/internal/model"
+	"bitwise74/video-api/internal/redis"
 	"bitwise74/video-api/internal/service"
+	"bitwise74/video-api/internal/types"
 	"bitwise74/video-api/pkg/util"
 	"bitwise74/video-api/pkg/validators"
 	"context"
@@ -19,7 +20,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func FFmpegProcess(c *gin.Context, d *internal.Deps) {
+func Process(c *gin.Context, d *types.Dependencies) {
 	requestID := c.MustGet("requestID").(string)
 	userID := c.MustGet("userID").(string)
 	jobID := c.Query("jobID")
@@ -91,6 +92,8 @@ func FFmpegProcess(c *gin.Context, d *internal.Deps) {
 		return
 	}
 
+	// shouldCleanup = false
+
 	if !opts.SaveToCloud {
 		c.Header("Content-Type", "video/mp4")
 		c.Header("Transfer-Encoding", "chunked")
@@ -120,7 +123,7 @@ func FFmpegProcess(c *gin.Context, d *internal.Deps) {
 				"requestID": requestID,
 			})
 
-			zap.L().Warn("FFmpeg job queue is full")
+			zap.L().Error("Failed to enqueue FFmpeg job", zap.Error(err))
 			return
 		}
 
@@ -164,7 +167,6 @@ func FFmpegProcess(c *gin.Context, d *internal.Deps) {
 	defer cancelMerged()
 
 	done := make(chan error, 1)
-	// Enqueue can only error if the queue is full
 	err = d.JobQueue.Enqueue(&service.FFmpegJob{
 		ID:       jobID,
 		UserID:   userID,
@@ -215,7 +217,7 @@ func FFmpegProcess(c *gin.Context, d *internal.Deps) {
 		return
 	}
 
-	err = d.DB.Transaction(func(tx *gorm.DB) error {
+	err = d.DB.Gorm.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Create(&fileEnt).Error; err != nil {
 			return err
 		}
@@ -243,5 +245,8 @@ func FFmpegProcess(c *gin.Context, d *internal.Deps) {
 		return
 	}
 
-	c.Status(http.StatusOK)
+	c.JSON(http.StatusOK, fileEnt)
+
+	redis.InvalidateCache("user:" + userID)
+	redis.InvalidateCache("profile:" + userID)
 }

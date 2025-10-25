@@ -1,9 +1,10 @@
 package file
 
 import (
-	"bitwise74/video-api/internal"
 	"bitwise74/video-api/internal/model"
+	"bitwise74/video-api/internal/redis"
 	"bitwise74/video-api/internal/service"
+	"bitwise74/video-api/internal/types"
 	"bitwise74/video-api/pkg/util"
 	"bitwise74/video-api/pkg/validators"
 	"context"
@@ -18,7 +19,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func FileUpload(c *gin.Context, d *internal.Deps) {
+func Upload(c *gin.Context, d *types.Dependencies) {
 	requestID := c.MustGet("requestID").(string)
 	userID := c.MustGet("userID").(string)
 
@@ -41,7 +42,7 @@ func FileUpload(c *gin.Context, d *internal.Deps) {
 		return
 	}
 
-	code, f, err := validators.FileValidator(fh, d.DB, userID)
+	code, f, err := validators.FileValidator(fh, d.DB.Gorm, userID)
 	if err != nil {
 		c.JSON(code, gin.H{
 			"error":     err.Error(),
@@ -137,7 +138,7 @@ func FileUpload(c *gin.Context, d *internal.Deps) {
 			"requestID": requestID,
 		})
 
-		zap.L().Warn("FFmpeg job queue is full")
+		zap.L().Warn("Failed to enqueue FFmpeg job", zap.String("requestID", requestID), zap.Error(err))
 		return
 	}
 
@@ -171,24 +172,17 @@ func FileUpload(c *gin.Context, d *internal.Deps) {
 		return
 	}
 
-	err = d.DB.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Create(&fileEnt).Error; err != nil {
-			return err
-		}
+	tx := d.DB.Gorm.Begin()
 
-		if err := tx.
-			Model(model.Stats{}).
-			Where("user_id = ?", userID).
-			Updates(map[string]any{
-				"used_storage":   gorm.Expr("used_storage + ?", fileEnt.Size),
-				"uploaded_files": gorm.Expr("uploaded_files + ?", 1),
-			}).
-			Error; err != nil {
-			return err
-		}
+	tx.Create(&fileEnt)
+	tx.Model(model.Stats{}).
+		Where("user_id = ?", userID).
+		Updates(map[string]any{
+			"used_storage":   gorm.Expr("used_storage + ?", fileEnt.Size),
+			"uploaded_files": gorm.Expr("uploaded_files + ?", 1),
+		})
 
-		return nil
-	})
+	err = tx.Commit().Error
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error":     "Internal server error",
@@ -200,4 +194,6 @@ func FileUpload(c *gin.Context, d *internal.Deps) {
 	}
 
 	c.JSON(http.StatusOK, fileEnt)
+
+	redis.InvalidateCache("user:" + userID)
 }

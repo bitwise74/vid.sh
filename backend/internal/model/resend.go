@@ -2,6 +2,7 @@ package model
 
 import "time"
 
+// TODO: drop table
 type ResendRequest struct {
 	ID         int `gorm:"primaryKey;autoIncrement"`
 	UserID     string

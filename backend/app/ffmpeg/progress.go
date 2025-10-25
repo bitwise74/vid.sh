@@ -2,6 +2,7 @@ package ffmpeg
 
 import (
 	"bitwise74/video-api/internal/service"
+	"bitwise74/video-api/internal/types"
 	"fmt"
 	"net/http"
 	"time"
@@ -9,14 +10,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func FFmpegProgress(c *gin.Context) {
+func Progress(c *gin.Context, d *types.Dependencies) {
 	requestID := c.MustGet("requestID").(string)
 	userID := c.MustGet("userID").(string)
 
-	if _, ok := service.ProgressMap.Load(userID); !ok {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error":     "No running jobs found",
-			"requestID": requestID,
+	_, ok := service.ProgressMap.Load(userID)
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "No job found for this user",
+			"request": requestID,
 		})
 		return
 	}
@@ -24,26 +26,28 @@ func FFmpegProgress(c *gin.Context) {
 	c.Header("Content-Type", "text/event-stream")
 	c.Header("Cache-Control", "nocache")
 	c.Header("Connection", "keep-alive")
+	c.Header("Transfer-Encoding", "chunked")
 
-	ticker := time.NewTicker(time.Millisecond * 200)
+	ticker := time.NewTicker(time.Millisecond * 500)
 	defer ticker.Stop()
 
 	for range ticker.C {
+		// If the job doesn't exist in the map we shouldn't send any more updates
 		val, ok := service.ProgressMap.Load(userID)
 		if !ok {
-			continue
+			break
 		}
 
 		v := val.(service.FFMpegJobStats)
 
-		fmt.Fprintf(c.Writer, "data: %.2f\n\n", v.Progress)
+		fmt.Fprintf(c.Writer, "data: %.2f|%s\n\n", v.Progress, v.State)
 		c.Writer.Flush()
 
-		if v.Progress >= 100 {
+		if v.Stopped || v.Progress >= 100 {
 			break
 		}
 	}
 
-	fmt.Fprintf(c.Writer, "data: %.2f\n\n", 100.0)
+	fmt.Fprint(c.Writer, "data: 100|Finishing...\n\n")
 	c.Writer.Flush()
 }

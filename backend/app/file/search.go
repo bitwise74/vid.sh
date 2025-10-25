@@ -1,47 +1,30 @@
 package file
 
 import (
-	"bitwise74/video-api/internal"
 	"bitwise74/video-api/internal/model"
+	"bitwise74/video-api/internal/types"
 	"net/http"
-	"slices"
-	"strconv"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
 
+type SearchRequestBody struct {
+	Query string `json:"query"`
+	Limit int    `json:"limit"`
+	Page  int    `json:"page"`
+}
+
 var validLimits = []int{10, 20, 50, 100, 250}
 
-func FileSearch(c *gin.Context, d *internal.Deps) {
+func Search(c *gin.Context, d *types.Dependencies) {
 	requestID := c.MustGet("requestID").(string)
 	userID := c.MustGet("userID").(string)
 
-	searchQuery := strings.ToLower(c.Query("query"))
-	if searchQuery == "" {
+	var data SearchRequestBody
+	if err := c.Bind(&data); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error":     "No search query provided",
-			"requestID": requestID,
-		})
-		return
-	}
-
-	limitStr := c.DefaultQuery("limit", "10")
-	limit, err := strconv.Atoi(limitStr)
-	if err != nil || !slices.Contains(validLimits, limit) {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error":     "Invalid limit provided",
-			"requestID": requestID,
-		})
-		return
-	}
-
-	pageStr := c.DefaultQuery("page", "0")
-	page, err := strconv.Atoi(pageStr)
-	if err != nil || page < 0 {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error":     "Invalid page provided",
+			"error":     "Invalid JSON body",
 			"requestID": requestID,
 		})
 		return
@@ -49,11 +32,11 @@ func FileSearch(c *gin.Context, d *internal.Deps) {
 
 	var results []model.File
 
-	err = d.DB.
-		Where("user_id = ? AND original_name LIKE ?", userID, "%"+searchQuery+"%").
+	err := d.DB.Gorm.
+		Where("user_id = ? AND original_name LIKE ?", userID, "%"+data.Query+"%").
 		Order("created_at desc").
-		Offset(page * limit).
-		Limit(limit).
+		Offset(data.Page * data.Limit).
+		Limit(data.Limit).
 		Find(&results).
 		Error
 	if err != nil {
@@ -64,12 +47,6 @@ func FileSearch(c *gin.Context, d *internal.Deps) {
 
 		zap.L().Error("Failed to find files by search query", zap.Error(err))
 		return
-	}
-
-	for i, file := range results {
-		version := strconv.Itoa(file.Version)
-		results[i].FileKey = file.FileKey + "?v=" + version
-		results[i].ThumbKey = file.ThumbKey + "?v=" + version
 	}
 
 	c.JSON(http.StatusOK, results)

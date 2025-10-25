@@ -89,6 +89,12 @@ func Setup() error {
 		}
 	}
 
+	// Check if vips is installed
+	err := exec.Command("vips").Run()
+	if err != nil {
+		return errors.New("vips not found")
+	}
+
 	if l := os.Getenv("APP_LOG_LEVEL"); l == "" || !slices.Contains(validLogLevels, l) {
 		os.Setenv("APP_LOG_LEVEL", "info")
 	}
@@ -118,7 +124,7 @@ func Setup() error {
 	}
 
 	// Test if ffmpeg is present
-	err := exec.Command("ffmpeg", "-version").Run()
+	err = exec.Command("ffmpeg", "-version").Run()
 	if err != nil {
 		if path := os.Getenv("FFMPEG_PATH"); path != "" {
 			zap.L().Debug("FFmpeg not found in path. Trying user provided path")
@@ -142,6 +148,8 @@ func Setup() error {
 			os.Setenv("FFMPEG_USE_GPU", "false")
 			zap.L().Warn("No GPU detected. If it exists ffmpeg won't be able to use it to encode/decode")
 		}
+
+		fmt.Println(gpu)
 
 		switch gpu {
 		case "nvidia":

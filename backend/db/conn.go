@@ -11,7 +11,11 @@ import (
 	"gorm.io/gorm"
 )
 
-func New() (*gorm.DB, error) {
+type DB struct {
+	Gorm *gorm.DB
+}
+
+func New() (*DB, error) {
 	// If running in a docker container don't allow the sqlite file to be created.
 	// The host should instead mount it using volumes
 	if util.IsRunningInDocker() {
@@ -27,10 +31,12 @@ func New() (*gorm.DB, error) {
 		return nil, fmt.Errorf("failed to initialize SQLite database, %w", err)
 	}
 
-	err = db.AutoMigrate(model.User{}, model.File{}, model.Stats{}, model.VerificationToken{}, model.ResendRequest{}, model.Migration{})
+	err = db.AutoMigrate(model.User{}, model.File{}, model.Stats{}, model.Migration{}, model.Token{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to automigrate tables, %w", err)
 	}
 
-	return db, nil
+	return &DB{
+		Gorm: db,
+	}, nil
 }

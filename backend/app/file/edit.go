@@ -1,9 +1,10 @@
 package file
 
 import (
-	"bitwise74/video-api/internal"
 	"bitwise74/video-api/internal/model"
+	"bitwise74/video-api/internal/redis"
 	"bitwise74/video-api/internal/service"
+	"bitwise74/video-api/internal/types"
 	"bitwise74/video-api/pkg/util"
 	"bitwise74/video-api/pkg/validators"
 	"context"
@@ -24,7 +25,7 @@ type fileEditOpts struct {
 	ProcessingOptions *validators.ProcessingOptions `json:"processing_options,omitempty"`
 }
 
-func FileEdit(c *gin.Context, d *internal.Deps) {
+func Edit(c *gin.Context, d *types.Dependencies) {
 	requestID := c.MustGet("requestID").(string)
 	userID := c.MustGet("userID").(string)
 
@@ -66,7 +67,7 @@ func FileEdit(c *gin.Context, d *internal.Deps) {
 	}
 
 	var file model.File
-	err := d.DB.
+	err := d.DB.Gorm.
 		Where("user_id = ? AND id = ?", userID, fileID).
 		First(&file).
 		Error
@@ -231,7 +232,7 @@ func FileEdit(c *gin.Context, d *internal.Deps) {
 
 	file.Version++
 
-	err = d.DB.Transaction(
+	err = d.DB.Gorm.Transaction(
 		func(tx *gorm.DB) error {
 			err := tx.Updates(file).Error
 			if err != nil {
@@ -264,4 +265,7 @@ func FileEdit(c *gin.Context, d *internal.Deps) {
 	}
 
 	c.JSON(http.StatusOK, file)
+
+	redis.InvalidateCache("user:" + userID)
+	redis.InvalidateCache("file:" + fileID)
 }
