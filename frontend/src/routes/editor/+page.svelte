@@ -1,20 +1,17 @@
 <script lang="ts">
     import { page } from '$app/state'
     import { PUBLIC_CDN_URL } from '$env/static/public'
-    import { TokenValidationResult, ValidateToken } from '$lib/api/Auth'
-    import { LoadVideo, OwnsVideo } from '$lib/api/Files'
+    import { CheckFileOwnership, FetchFile } from '$lib/api-v2/Files'
     import ActionButtons from '$lib/components/editor/ActionButtons.svelte'
     import Compress from '$lib/components/editor/tabs/Compress.svelte'
     import Crop from '$lib/components/editor/tabs/Crop.svelte'
     import Trim from '$lib/components/editor/tabs/Trim.svelte'
     import Header from '$lib/components/Header.svelte'
-    import { toastStore } from '$lib/components/toast/toastStore'
     import VideoPlayer from '$lib/components/video/Player.svelte'
     import VideoUpload from '$lib/components/video/Upload.svelte'
-    import { isLoggedIn } from '$lib/stores/AppVars'
-    import { exportFormat, exportFps, selectedFile, trimEnd, trimStart, videoDuration, videoSource } from '$lib/stores/EditOptions'
+    import { exportFormat, exportFps, losslessExport, selectedFile, targetSize, trimEnd, trimStart, videoDuration, videoSource } from '$lib/stores/EditOptions'
+    import { toastStore } from '$lib/stores/ToastStore'
     import { currentTime } from '$lib/stores/VideoStore'
-    import { getCookie } from '$lib/utils/Cookies'
     import { onDestroy, onMount } from 'svelte'
     import { Turnstile } from 'svelte-turnstile'
 
@@ -26,23 +23,23 @@
 
     // Mainly checks for when the video ID query is present
     onMount(async () => {
-        if (getCookie('logged_in') == '1') {
-            isLoggedIn.set((await ValidateToken()) == TokenValidationResult.VALID)
+        handleVideoClear()
+
+        if (localStorage.getItem('optLosslessExport')) {
+            losslessExport.set(true)
+        }
+
+        if (localStorage.getItem('optDefaultTargetSize')) {
+            const val = parseInt(localStorage.getItem('optDefaultTargetSize') || '')
+
+            if (!isNaN(val)) {
+                targetSize.set(val)
+            }
         }
 
         if (!videoID) return
 
-        // Reject if not logged in but trying to edit existing video
-        if (!$isLoggedIn) {
-            toastStore.error({
-                title: 'You must be logged in to edit videos',
-                dismissible: false,
-                duration: 10000
-            })
-            return
-        }
-
-        const owns = await OwnsVideo(videoID).catch((err) => {
+        const owns = await CheckFileOwnership(videoID).catch((err) => {
             console.error(err)
         })
 
@@ -55,7 +52,7 @@
         }
 
         // Load video if logged in and owns video
-        const videoData = await LoadVideo(videoID).catch((err) => {
+        const videoData = await FetchFile(videoID).catch((err) => {
             toastStore.error({
                 title: 'Failed to load video',
                 message: err.message
@@ -70,6 +67,15 @@
         videoDuration.set(videoData.duration)
         videoSource.set(`${PUBLIC_CDN_URL}/${videoData?.file_key}`)
         trimEnd.set(videoData.duration)
+
+        // Set default target size
+        if (localStorage.getItem('optTargetSize')) {
+            const val = parseInt(localStorage.getItem('optTargetSize') || '')
+
+            if (!isNaN(val)) {
+                targetSize.set(val)
+            }
+        }
     })
 
     onDestroy(() => {
@@ -116,7 +122,6 @@
 
         const onMeta = () => {
             videoDuration.set(video.duration)
-            console.log(video.duration)
             trimEnd.set(video.duration)
 
             video.removeEventListener('loadedmetadata', onMeta)
@@ -126,6 +131,15 @@
 
         video.addEventListener('loadedmetadata', onMeta)
         video.src = $videoSource
+
+        // Set default target size
+        if (localStorage.getItem('optTargetSize')) {
+            const val = parseInt(localStorage.getItem('optTargetSize') || '')
+
+            if (!isNaN(val)) {
+                targetSize.set(val)
+            }
+        }
     }
 
     const handleVideoClear = () => {
@@ -153,7 +167,7 @@
     <title>Video Editor - vid.sh</title>
 </svelte:head>
 
-<div class="min-vh-100 bg-light">
+<div class="min-vh-100">
     <Header title="Editor" page="editor" />
 
     <Turnstile

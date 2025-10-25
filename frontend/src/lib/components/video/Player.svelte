@@ -1,6 +1,7 @@
 <script lang="ts">
     import { trimEnd, trimStart, videoDuration, videoSource } from '$lib/stores/EditOptions'
     import { currentTime } from '$lib/stores/VideoStore'
+    import { FormatDuration } from '$lib/utils/Format'
     import RangeSlider from 'svelte-range-slider-pips'
     import CropBox from '../editor/CropBox.svelte'
 
@@ -37,8 +38,6 @@
         video.currentTime = e.detail.value
         currentTime.set(e.detail.value)
 
-        console.log($trimStart, $trimEnd)
-
         if (wasPaused) {
             video.play()
             wasPaused = false
@@ -61,17 +60,10 @@
             isMuted = true
         }
     }
-
-    function formatTime(time: number) {
-        const minutes = Math.floor(time / 60)
-        const seconds = Math.floor(time % 60)
-        const milliseconds = Math.floor((time % 1) * 100)
-        return `${minutes}:${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(2, '0')}`
-    }
 </script>
 
 <div>
-    <div class="position-relative aspect-video bg-dark rounded overflow-hidden mb-3 d-inline-block">
+    <div class="position-relative d-inline-block mb-3 aspect-video overflow-hidden rounded">
         <video
             bind:this={video}
             bind:currentTime={$currentTime}
@@ -91,35 +83,36 @@
     <div>
         <div style="cursor: pointer;">
             <RangeSlider
+                darkmode="auto"
                 spring={false}
                 limits={[$trimStart, $trimEnd]}
                 max={$videoDuration}
                 step={0.05}
                 value={$currentTime}
-                formatter={formatTime}
+                formatter={FormatDuration}
                 on:start={() => handleSeekStart()}
                 on:stop={(e) => handleSeekStop(e)} />
         </div>
         <div class="d-flex justify-content-between small text-muted mb-3">
-            <span>{formatTime($currentTime)}</span>
-            <span>{formatTime($videoDuration)}</span>
+            <span>{FormatDuration($currentTime)}</span>
+            <span>{FormatDuration($videoDuration)}</span>
         </div>
 
         <div class="d-flex align-items-center justify-content-between">
             <div class="d-flex align-items-center gap-2">
-                <button class="btn btn-outline-dark btn-sm" onclick={togglePlay} aria-label="Play/Pause">
+                <button class="btn btn-outline-primary btn-sm" onclick={togglePlay} aria-label="Play/Pause">
                     <i class="bi bi-{isPlaying ? 'pause' : 'play'}-fill"></i>
                 </button>
 
                 <div class="d-flex align-items-center gap-2">
-                    <button class="btn btn-outline-dark btn-sm" onclick={toggleMute} aria-label="Mute/Unmute">
+                    <button class="btn btn-outline-primary btn-sm" onclick={toggleMute} aria-label="Mute/Unmute">
                         <i class="bi bi-volume-{isMuted ? 'mute' : 'up'}-fill"></i>
                     </button>
                     <input type="range" class="form-range" style="width: 80px;" min="0" max="1" step="0.01" value={volume} oninput={handleVolumeChange} />
                 </div>
             </div>
 
-            <button class="btn btn-outline-dark btn-sm" aria-label="Fullscreen" onclick={() => video.requestFullscreen()}>
+            <button class="btn btn-outline-primary btn-sm" aria-label="Fullscreen" onclick={() => video.requestFullscreen()}>
                 <i class="bi bi-arrows-fullscreen"></i>
             </button>
         </div>

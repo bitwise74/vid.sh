@@ -28,7 +28,7 @@ export const videoW = writable(0)
 export const videoH = writable(0)
 
 export const settingsUnchanged = derived(
-    [trimStart, trimEnd, targetSize, exportFps, exportFormat, videoDuration],
-    ([$trimStart, $trimEnd, $targetSize, $exportFps, $exportFormat, $videoDuration]) =>
-        $trimStart === 0 && $trimEnd === $videoDuration && $targetSize === 0 && $exportFps === "Don't change" && $exportFormat === 'mp4'
+    [trimStart, trimEnd, targetSize, videoDuration, cropX, cropY, cropW, cropH],
+    ([$trimStart, $trimEnd, $targetSize, $videoDuration, cropX, cropY, cropW, cropH]) =>
+        $trimStart === 0 && $trimEnd === $videoDuration && $targetSize === 0 && cropX === 0 && cropY === 0 && cropW === 0 && cropH === 0
 )

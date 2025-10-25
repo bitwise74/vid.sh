@@ -1,12 +1,12 @@
 <script lang="ts">
     import { goto } from '$app/navigation'
-    import { ExportVideo, UpdateVideo, UploadVideo } from '$lib/api/Files'
-    import { isLoggedIn } from '$lib/stores/AppVars'
-    import { exportFormat, exportFps, isExporting, isSaving, selectedFile, settingsUnchanged, videoName } from '$lib/stores/EditOptions'
+    import { ExportVideo, UpdateFile, UploadFile } from '$lib/api-v2/Files'
+    import { isLoggedIn, jobStats, shouldRefetch } from '$lib/stores/AppVars'
+    import { isExporting, isSaving, selectedFile, settingsUnchanged, videoName } from '$lib/stores/EditOptions'
+    import { AutoCopy } from '$lib/utils/AutoCopy'
     import { DownloadBlob } from '$lib/utils/DownloadBlob'
     import { GetExportCropCoords } from '$lib/utils/GetExportCropCoords'
-    import { jobProgress } from '../../../routes/editor/Logic'
-    import { toastStore } from '../toast/toastStore'
+    import { toastStore } from '../../stores/ToastStore'
     import { losslessExport, targetSize, trimEnd, trimStart } from './../../stores/EditOptions'
 
     interface Props {
@@ -17,58 +17,49 @@
     let { videoID, turnstileToken }: Props = $props()
     const disableBtn = (): boolean => $isExporting || $isSaving || $settingsUnchanged
 
+    async function redirectToDashboard() {
+        shouldRefetch.set(true)
+        await goto('/dashboard')
+    }
+
     async function handleExport() {
+        if (!$selectedFile) return // Typeguard
+
         isExporting.set(true)
+        const crop = GetExportCropCoords()
 
-        try {
-            if ($selectedFile) {
-                // Handle for attached files (send to server)
-
-                const processedBlob = await ExportVideo(
-                    {
-                        file: $selectedFile,
-                        processingOpts: {
-                            format: $exportFormat,
-                            fps: parseInt($exportFps),
-                            losslessExport: $losslessExport,
-                            targetSize: $targetSize,
-                            trimStart: $trimStart,
-                            trimEnd: $trimEnd,
-                            saveToCloud: false,
-                            crop: GetExportCropCoords()
-                        }
-                    },
-                    turnstileToken
-                )
-
-                DownloadBlob(processedBlob, 'edited_' + $videoName)
-            } else {
-                // Handle send instructions
-
-                const video = await UpdateVideo(videoID!, {
-                    processing_options: {
-                        format: $exportFormat,
-                        fps: parseInt($exportFps),
-                        losslessExport: $losslessExport,
-                        targetSize: $targetSize,
-                        trimStart: $trimStart,
-                        trimEnd: $trimEnd,
-                        saveToCloud: false,
-                        crop: GetExportCropCoords()
-                    }
+        const processedBlob = await ExportVideo(
+            $selectedFile,
+            {
+                losslessExport: $losslessExport,
+                targetSize: $targetSize,
+                trimStart: $trimStart,
+                trimEnd: $trimEnd,
+                cropH: crop.h,
+                cropW: crop.w,
+                cropX: crop.x,
+                cropY: crop.y
+            },
+            turnstileToken,
+            false
+        )
+            .catch((err) => {
+                toastStore.error({
+                    title: 'Failed to export video',
+                    message: err.message,
+                    duration: 10000
                 })
-                if (!video) return
-                window.location.href = '/dashboard'
-            }
-        } catch (err) {
-            toastStore.error({
-                title: 'Failed to export video',
-                message: 'Check the console for more details',
-                duration: 10000
+                console.error(err)
+                return
             })
-            console.error(err)
-        } finally {
-            isExporting.set(false)
+            .finally(() => {
+                setTimeout(() => {
+                    isExporting.set(false)
+                }, 3000)
+            })
+
+        if (processedBlob) {
+            DownloadBlob(processedBlob, 'edited_' + $videoName)
         }
     }
 
@@ -76,49 +67,106 @@
         if (!$selectedFile) return
 
         isSaving.set(true)
+        const crop = GetExportCropCoords()
 
-        try {
-            if ($settingsUnchanged) {
-                // Uploads can only happen with attached video files
-                await UploadVideo($selectedFile)
-                goto('/dashboard')
-                return
-            }
+        if ($settingsUnchanged) {
+            const video = await UploadFile($selectedFile)
+                .catch((err) => {
+                    toastStore.error({
+                        title: 'Failed to export video',
+                        message: err.message,
+                        duration: 10000
+                    })
+                    console.error(err)
+                    return
+                })
+                .finally(() => {
+                    isSaving.set(false)
+                })
 
-            await ExportVideo(
-                {
-                    file: $selectedFile,
-                    processingOpts: {
-                        format: $exportFormat,
-                        fps: parseInt($exportFps),
-                        losslessExport: $losslessExport,
-                        targetSize: $targetSize,
-                        trimStart: $trimStart,
-                        trimEnd: $trimEnd,
-                        saveToCloud: true,
-                        crop: GetExportCropCoords()
-                    }
-                },
-                turnstileToken
-            )
-            goto('/dashboard')
-        } catch (err) {
-            toastStore.error({
-                title: 'Failed to save video',
-                message: 'Check the console for more details',
-                duration: 10000
-            })
-            console.error(err)
-        } finally {
-            isSaving.set(false)
+            if (!video) return
+
+            await redirectToDashboard()
+            return await AutoCopy(video.id, video.file_key)
         }
+
+        const video = await ExportVideo(
+            $selectedFile,
+            {
+                losslessExport: $losslessExport,
+                targetSize: $targetSize,
+                trimStart: $trimStart,
+                trimEnd: $trimEnd,
+                cropH: crop.h,
+                cropW: crop.w,
+                cropX: crop.x,
+                cropY: crop.y
+            },
+            turnstileToken,
+            true
+        )
+            .catch((err) => {
+                toastStore.error({
+                    title: 'Failed to export video',
+                    message: err.message,
+                    duration: 10000
+                })
+                console.error(err)
+                return
+            })
+            .finally(() => {
+                isSaving.set(false)
+            })
+
+        if (!video) return // Typeguard
+
+        await redirectToDashboard()
+        await AutoCopy(video.id, video.file_key)
+    }
+
+    async function handleUpdate() {
+        if (!videoID) return // Typeguard
+
+        isSaving.set(true)
+        const crop = GetExportCropCoords()
+
+        const video = await UpdateFile(videoID, {
+            processing_options: {
+                losslessExport: $losslessExport,
+                targetSize: $targetSize,
+                trimStart: $trimStart,
+                trimEnd: $trimEnd,
+                cropH: crop.h,
+                cropW: crop.w,
+                cropX: crop.x,
+                cropY: crop.y
+            }
+        })
+            .catch((err) => {
+                toastStore.error({
+                    title: 'Updating video failed',
+                    message: err.message,
+                    duration: 10000
+                })
+                console.error('Failed to update video', err)
+                return
+            })
+            .finally(() => {
+                isSaving.set(false)
+            })
+
+        if (!video) return // Typeguard
+
+        await redirectToDashboard()
+        await AutoCopy(video.id, video.file_key)
     }
 </script>
-
-<div class="border-top pt-4 mt-4">
+<!-- TODO: rewrite the player so it can handle very large files -->
+<div class="border-top mt-4 pt-4">
     <div class="d-grid gap-3">
+        <!-- Editing an existing video -->
         {#if videoID}
-            <button class="btn btn-outline-warning" disabled={disableBtn()} onclick={handleExport}>
+            <button class="btn btn-outline-warning" disabled={disableBtn()} onclick={handleUpdate}>
                 {#if $isSaving}
                     <span class="spinner-border spinner-border-sm me-2"></span>
                     Updating...
@@ -127,7 +175,10 @@
                     Update Video
                 {/if}
             </button>
-        {:else}
+        {/if}
+
+        <!-- Editing an uploaded video -->
+        {#if !videoID}
             <button class="btn btn-primary" disabled={disableBtn()} onclick={handleExport}>
                 {#if $isExporting}
                     <span class="spinner-border spinner-border-sm me-2"></span>
@@ -148,7 +199,7 @@
                     {/if}
                 </button>
             {:else}
-                <div class="text-center p-3 bg-light rounded">
+                <div class="bg-body-tertiary rounded p-3 text-center">
                     <p class="small text-muted mb-2">Sign in to save your videos to the cloud</p>
                     <a href="/login" class="btn btn-outline-secondary btn-sm">Sign In</a>
                 </div>
@@ -156,9 +207,54 @@
         {/if}
 
         {#if $isExporting || $isSaving}
-            <div class="progress mt-2" style="height: 6px;">
-                <div class="progress-bar progress-bar-animated bg-success" role="progressbar" style="width: {$jobProgress}%;" aria-valuenow={$jobProgress} aria-valuemin="0" aria-valuemax="100"></div>
+            <p class="small text-muted mb-0 mt-3 text-center upload-text">
+                {#if $jobStats.state}
+                    {#key $jobStats.state}
+                        {#each $jobStats.state!.split('') as l, i}
+                            <span style="animation-delay:{i * 0.01}s ">{l}</span>
+                        {/each}
+                    {/key}
+                {/if}
+            </p>
+            <div class="progress" style="height: 5px;">
+                <div
+                    class="progress-bar progress-bar-animated bg-success"
+                    role="progressbar"
+                    style="width: {$jobStats.progress}%;"
+                    aria-valuenow={$jobStats.progress}
+                    aria-valuemin="0"
+                    aria-valuemax="100">
+                </div>
             </div>
         {/if}
     </div>
 </div>
+
+<style>
+    .upload-text span {
+        display: inline-block;
+        opacity: 0;
+        transform: translateY(10px);
+        filter: blur(4px);
+        animation: fadeUpBlur 0.5s ease forwards;
+    }
+
+    .upload-text {
+        font-variant-ligatures: none;
+        word-spacing: normal;
+        white-space: pre;
+    }
+
+    @keyframes fadeUpBlur {
+        0% {
+            opacity: 0;
+            transform: translateY(10px);
+            filter: blur(4px);
+        }
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+            filter: blur(0);
+        }
+    }
+</style>

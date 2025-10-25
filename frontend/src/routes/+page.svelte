@@ -1,10 +1,24 @@
 <script lang="ts">
+    import { goto } from '$app/navigation'
+    import { onMount } from 'svelte'
     import '../app.css'
     import Header from '../lib/components/Header.svelte'
+
+    onMount(() => {
+        if (localStorage.getItem('optDisableRoot') === 'true') {
+            goto('/dashboard')
+        }
+    })
 </script>
 
 <svelte:head>
     <title>vid.sh - Simple video editor</title>
+    <meta property="og:title" content="Vid.sh - Suckless video editor" />
+    <meta
+        property="og:description"
+        content="Edit your videos right in your browser, store them securely in the cloud, and share them anywhere. All for free and open source. No downloads, no ads, no spying and no bullshit." />
+    <meta property="og:url" content="https://bitwise0x.dev" />
+    <meta property="theme-color" content="#5733E7" />
 </svelte:head>
 
 <div class="d-flex flex-column min-vh-100">
@@ -27,13 +41,12 @@
                         </p>
 
                         <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center mb-5">
-                            <a href="/editor" class="btn btn-gradient btn-lg px-4">
-                                <i class="bi bi-pencil me-2"></i>
+                            <a href="/editor" class="btn btn-dark btn-lg px-4">
+                                <i class="bi-pencil me-2"></i>
                                 Open Editor
                             </a>
                         </div>
 
-                        <!-- TODO: add live statistics here -->
                         <div class="row g-4 text-center">
                             <div class="col-6 col-md-3">
                                 <div class="fs-2 fw-bold text-primary">2GB</div>
@@ -67,7 +80,7 @@
 
                 <div class="row g-4">
                     <div class="col-md-6 col-lg-4">
-                        <div class="card h-100 border-0 shadow card-hover">
+                        <div class="card h-100 border-0 shadow card-hover bg-body-tertiary">
                             <div class="card-body p-4">
                                 <div class="d-flex align-items-center justify-content-center rounded-3 mb-4" style="width: 48px; height: 48px; background-color: #f3e8ff;">
                                     <i class="bi bi-scissors text-primary fs-4"></i>
@@ -79,7 +92,7 @@
                     </div>
 
                     <div class="col-md-6 col-lg-4">
-                        <div class="card h-100 border-0 shadow card-hover">
+                        <div class="card h-100 border-0 shadow card-hover bg-body-tertiary">
                             <div class="card-body p-4">
                                 <div class="d-flex align-items-center justify-content-center rounded-3 mb-4" style="width: 48px; height: 48px; background-color: #dcfce7;">
                                     <i class="bi bi-cloud text-success fs-4"></i>
@@ -91,7 +104,7 @@
                     </div>
 
                     <div class="col-md-6 col-lg-4">
-                        <div class="card h-100 border-0 shadow card-hover">
+                        <div class="card h-100 border-0 shadow card-hover bg-body-tertiary">
                             <div class="card-body p-4">
                                 <div class="d-flex align-items-center justify-content-center rounded-3 mb-4" style="width: 48px; height: 48px; background-color: #fed7aa;">
                                     <i class="bi bi-share text-warning fs-4"></i>
@@ -103,7 +116,7 @@
                     </div>
 
                     <div class="col-md-6 col-lg-4">
-                        <div class="card h-100 border-0 shadow card-hover">
+                        <div class="card h-100 border-0 shadow card-hover bg-body-tertiary">
                             <div class="card-body p-4">
                                 <div class="d-flex align-items-center justify-content-center rounded-3 mb-4" style="width: 48px; height: 48px; background-color: #fecaca;">
                                     <i class="bi bi-shield-check text-danger fs-4"></i>
@@ -120,7 +133,7 @@
         </section>
     </main>
 
-    <footer class="border-top bg-light py-5">
+    <footer class="border-top py-5">
         <div class="container">
             <div class="row g-4">
                 <div class="col-md-3 col-sm-4">

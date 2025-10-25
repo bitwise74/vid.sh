@@ -88,15 +88,15 @@
                             </p>
 
                             <div class="d-flex gap-2 my-4 flex-wrap align-items-center justify-content-center">
-                                <a href="https://mail.google.com" target="_blank" class="btn btn-outline-primary d-flex align-items-center gap-1">
+                                <a href="https://mail.google.com" target="_blank" class="btn btn-dark d-flex align-items-center gap-1">
                                     <i class="bi bi-google"></i> Gmail
                                 </a>
 
-                                <a href="https://mail.proton.me" target="_blank" class="btn btn-outline-dark d-flex align-items-center gap-1">
+                                <a href="https://mail.proton.me" target="_blank" class="btn btn-dark d-flex align-items-center gap-1">
                                     <i class="bi bi-lock-fill"></i> Proton Mail
                                 </a>
 
-                                <a href="https://outlook.live.com" target="_blank" class="btn btn-outline-info d-flex align-items-center gap-1">
+                                <a href="https://outlook.live.com" target="_blank" class="btn btn-dark d-flex align-items-center gap-1">
                                     <i class="bi bi-microsoft"></i> Outlook
                                 </a>
                             </div>
@@ -139,7 +139,7 @@
         </section>
     </main>
 
-    <footer class="border-top bg-light py-4">
+    <footer class="border-top py-4">
         <div class="container text-center">
             <p class="small text-muted-foreground mb-0">© 2025 vid.sh. All rights reserved.</p>
         </div>

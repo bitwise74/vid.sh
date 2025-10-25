@@ -1,4 +1,4 @@
-import type { CropOpts } from '$lib/api/Files'
+import type { CropOpts } from '$lib/api-v2/Files'
 import { cropH, cropW, cropX, cropY, isCroppingEnabled, videoH, videoW } from '$lib/stores/EditOptions'
 import { get } from 'svelte/store'
 

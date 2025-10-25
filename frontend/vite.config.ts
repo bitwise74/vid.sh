@@ -12,6 +12,12 @@ export default defineConfig({
             }
         }
     },
+//     optimizeDeps: {
+//         exclude: ['svelte-turnstile', 'svelte-range-slider-pips']
+//     },
+//     ssr: {
+//         noExternal: ['svelte-turnstile', 'svelte-range-slider-pips']
+//     },
     plugins: [sveltekit()],
     resolve: {
         alias: {

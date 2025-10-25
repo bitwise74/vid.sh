@@ -97,6 +97,7 @@
     <div class="mb-3">
         <div style="cursor: pointer;">
             <RangeSlider
+                darkmode="auto"
                 spring={false}
                 rangeGapMin={$videoDuration * 0.025}
                 values={[$trimStart, $trimEnd]}

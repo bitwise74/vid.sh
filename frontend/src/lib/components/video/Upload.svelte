@@ -1,4 +1,7 @@
 <script lang="ts">
+    import { PUBLIC_FILE_SIZE_LIMIT } from '$env/static/public'
+    import { toastStore } from '$lib/stores/ToastStore'
+
     let {
         onVideoSelect,
         videoSelected = false,
@@ -37,10 +40,35 @@
     }
 
     function handleFileSelect(e: Event) {
-        const file = e.target!.files?.[0]
-        if (file && file.type.startsWith('video/')) {
-            onVideoSelect?.(file)
+        const file = Array.from((e.target as any).files)[0] as File | undefined
+        if (!file) return
+
+        if (!file.type.startsWith('video/')) {
+            toastStore.error({
+                title: 'Invalid file type',
+                message: 'Please upload a valid video file',
+                duration: 10000
+            })
+            return
         }
+
+        if (file.size > parseInt(PUBLIC_FILE_SIZE_LIMIT)) {
+            toastStore.error({
+                title: 'File size exceeds limit',
+                duration: 10000
+            })
+            return
+        }
+
+        if (file.size === 0) {
+            toastStore.error({
+                title: 'File is empty',
+                duration: 10000
+            })
+            return
+        }
+
+        onVideoSelect?.(file)
     }
 </script>
 
@@ -66,7 +94,7 @@
 {:else}
     <label
         for="video-upload"
-        class="card border-2 border-dashed {isDragOver ? 'border-primary bg-primary bg-opacity-10' : 'border-secondary'}"
+        class="card border-2 border-dashed {isDragOver ? 'border-primary bg-primary bg-opacity-10' : ''}"
         style="cursor: pointer; transition: all 0.3s ease;"
         ondrop={handleDrop}
         ondragover={handleDragOver}
@@ -80,7 +108,7 @@
             <!-- Hidden input triggered by the wrapping label -->
             <input type="file" accept="video/*" onchange={handleFileSelect} class="d-none" id="video-upload" />
 
-            <div class="btn btn-gradient mt-2">Choose File</div>
+            <div class="btn btn-dark mt-2">Choose File</div>
 
             <p class="small text-muted mt-3">MP4 up to 2GB</p>
         </div>
