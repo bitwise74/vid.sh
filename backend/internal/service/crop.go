@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-// Shorhand
+// Shorthand
 func i2S(i int) string {
 	return strconv.Itoa(i)
 }
