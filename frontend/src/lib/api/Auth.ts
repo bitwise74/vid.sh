@@ -55,7 +55,7 @@ export async function Register(form: Omit<AuthForm, 'remember'>) {
  * @param email User email
  */
 export async function RequestPasswordReset(email: string) {
-    const req = await fetch(`${PUBLIC_BASE_URL}/api/users/password-reset`, {
+    const req = await fetch(`${PUBLIC_BASE_URL}/api/mail/reset-passwd`, {
         method: 'POST',
         body: JSON.stringify({ email })
     })
@@ -76,7 +76,7 @@ export async function RequestPasswordReset(email: string) {
  * @param newPassword New password
  */
 export async function ResetPassword(token: string, newPassword: string) {
-    const req = await fetch(`${PUBLIC_BASE_URL}/api/users/password-reset/confirm`, {
+    const req = await fetch(`${PUBLIC_BASE_URL}/api/users/reset-password`, {
         method: 'POST',
         body: JSON.stringify({ token, newPassword })
     })
