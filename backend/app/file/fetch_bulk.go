@@ -3,7 +3,6 @@ package file
 import (
 	"bitwise74/video-api/internal/model"
 	"bitwise74/video-api/internal/types"
-	"fmt"
 	"net/http"
 	"slices"
 

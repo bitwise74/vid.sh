@@ -1,4 +1,4 @@
-FROM debian:bookworm-slim as builder
+FROM debian:bookworm-slim AS builder
 
 WORKDIR /build
 
@@ -20,7 +20,7 @@ RUN wget https://github.com/upx/upx/releases/download/v4.0.1/upx-4.0.1-amd64_lin
 
 ENV PATH=$PATH:/usr/local/go/bin
 
-COPY . .
+COPY backend/ .
 
 # Build Go binary + compress with UPX
 RUN go mod download && go build -ldflags="-s -w" -v -o vidsh . && upx -9 --lzma ./vidsh
