@@ -20,7 +20,7 @@ func Register(c *gin.Context, d *types.Dependencies) {
 	requestID := c.MustGet("requestID").(string)
 
 	var data registerBody
-	if err := c.ShouldBind(&data); err != nil {
+	if err := c.ShouldBindJSON(&data); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error":     "Internal server error",
 			"requestID": requestID,

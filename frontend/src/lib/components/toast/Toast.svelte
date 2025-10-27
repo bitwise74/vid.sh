@@ -58,7 +58,7 @@
                 <div>
                     <div class="fw-semibold">{toast.title}</div>
                     {#if toast.message}
-                        {#if toast.message.at(0) === '<'}
+                        {#if toast.message[0] === '<'}
                             {@html toast.message}
                         {:else}
                             {toast.message}

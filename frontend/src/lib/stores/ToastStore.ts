@@ -12,7 +12,7 @@ export interface Toast {
     id: string
     type: ToastTypes
     title: string
-    message: string
+    message?: string
     duration: number
     dismissible: boolean
     buttons: Array<ToastButton>

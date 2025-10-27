@@ -3,6 +3,7 @@ package user
 import (
 	"bitwise74/video-api/internal/model"
 	"bitwise74/video-api/internal/types"
+	"bitwise74/video-api/pkg/security"
 	"bitwise74/video-api/pkg/validators"
 	"net/http"
 
@@ -13,14 +14,14 @@ import (
 
 type resetPasswdBody struct {
 	Token       string `json:"token" binding:"required"`
-	NewPassword string `json:"new_password" binding:"required,min=8,max=128"`
+	NewPassword string `json:"newPassword" binding:"required"`
 }
 
 func ResetPassword(c *gin.Context, d *types.Dependencies) {
 	requestID := c.MustGet("requestID").(string)
 
 	var body resetPasswdBody
-	if err := c.Bind(&body); err != nil {
+	if err := c.ShouldBindJSON(&body); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error":     "Malformed or invalid JSON body",
 			"requestID": requestID,
@@ -67,7 +68,7 @@ func ResetPassword(c *gin.Context, d *types.Dependencies) {
 		return
 	}
 
-	passwdHash, err := d.Argon.GenerateFromPassword(body.NewPassword)
+	passwdHash, err := security.Argon.GenerateFromPassword(body.NewPassword)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error":     "Internal server error",

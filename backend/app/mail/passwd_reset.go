@@ -25,7 +25,7 @@ func PasswdReset(c *gin.Context, d *types.Dependencies) {
 	requestID := c.MustGet("requestID").(string)
 
 	var body PasswdResetBody
-	if err := c.ShouldBind(&body); err != nil {
+	if err := c.ShouldBindJSON(&body); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error":     "Internal server error",
 			"requestID": requestID,
@@ -47,7 +47,7 @@ func PasswdReset(c *gin.Context, d *types.Dependencies) {
 	}
 
 	// Check for penalties
-	val := d.Rdb.Get(c.Request.Context(), c.ClientIP()+":penalty").Val()
+	val := redis.Rdb.Get(c.Request.Context(), c.ClientIP()+":penalty").Val()
 	if val != "" {
 		valInt, _ := strconv.Atoi(val)
 

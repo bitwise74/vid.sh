@@ -35,7 +35,7 @@ export async function Login(form: AuthForm) {
  * @param form Credentials
  */
 export async function Register(form: Omit<AuthForm, 'remember'>) {
-    const req = await fetch(`${PUBLIC_BASE_URL}/api/users/register`, {
+    const req = await fetch(`${PUBLIC_BASE_URL}/api/users`, {
         method: 'POST',
         body: JSON.stringify(form)
     })

@@ -85,8 +85,7 @@ func Verify(c *gin.Context, d *types.Dependencies) {
 	tx.Model(&model.Token{}).
 		Where("user_id = ? AND token = ?", userID, token).
 		Updates(map[string]any{
-			"used":    true,
-			"used_at": time.Now(),
+			"used": true,
 		})
 
 	tx.Model(&model.User{}).
