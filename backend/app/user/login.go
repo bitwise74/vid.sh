@@ -1,8 +1,9 @@
 package user
 
 import (
-	"bitwise74/video-api/internal"
-	"bitwise74/video-api/internal/model"
+	"bitwise74/video-api/internal/types"
+	"bitwise74/video-api/pkg/security"
+	"bitwise74/video-api/pkg/validators"
 	"net/http"
 	"os"
 	"strconv"
@@ -11,14 +12,16 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"go.uber.org/zap"
+	"gorm.io/gorm"
 )
 
 type loginBody struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
+	Remember bool   `json:"remember"`
 }
 
-func UserLogin(c *gin.Context, d *internal.Deps) {
+func Login(c *gin.Context, d *types.Dependencies) {
 	requestID := c.MustGet("requestID").(string)
 
 	var data loginBody
@@ -28,13 +31,16 @@ func UserLogin(c *gin.Context, d *internal.Deps) {
 			"requestID": requestID,
 		})
 
-		zap.L().Error("Can't bind request body", zap.Error(err), zap.String("requestID", requestID))
+		zap.L().Error("Can't bind request body",
+			zap.String("requestID", requestID),
+			zap.Error(err),
+		)
 		return
 	}
 
-	if data.Email == "" {
+	if err := validators.EmailValidator(data.Email); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error":     "Email field can't be empty",
+			"error":     err.Error(),
 			"requestID": requestID,
 		})
 		return
@@ -48,29 +54,42 @@ func UserLogin(c *gin.Context, d *internal.Deps) {
 		return
 	}
 
-	var user model.User
+	user, err := d.DB.FetchUserByEmail(data.Email)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error":     "Invalid credentials",
+				"requestID": requestID,
+			})
+			return
+		}
 
-	if err := d.DB.Where("email = ?", data.Email).First(&user).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error":     "User not found",
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":     "Internal server error",
 			"requestID": requestID,
 		})
 
-		zap.L().Error("User not found", zap.Error(err), zap.String("requestID", requestID))
+		zap.L().Error("Failed to fetch user by email",
+			zap.String("requestID", requestID),
+			zap.String("email", data.Email),
+			zap.Error(err),
+		)
 		return
 	}
 
-	ok, err := d.Argon.VerifyPasswd(data.Password, user.PasswordHash)
+	ok, err := security.Argon.VerifyPasswd(data.Password, user.PasswordHash)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error":     "Internal server error",
 			"requestID": requestID,
 		})
 
-		zap.L().Error("Failed to verify password", zap.Error(err), zap.String("requestID", requestID))
+		zap.L().Error("Failed to verify password",
+			zap.String("requestID", requestID),
+			zap.Error(err),
+		)
 		return
 	}
-
 	if !ok {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"error":     "Invalid credentials",
@@ -91,18 +110,26 @@ func UserLogin(c *gin.Context, d *internal.Deps) {
 			"requestID": requestID,
 		})
 
-		zap.L().Error("Failed to generate JWT auth token", zap.Error(err), zap.String("requestID", requestID))
+		zap.L().Error("Failed to generate JWT auth token",
+			zap.String("requestID", requestID),
+			zap.Error(err),
+		)
 		return
 	}
 
-	sslEnabled, err := strconv.ParseBool("HOST_SSL_ENABLED")
+	sslEnabled, err := strconv.ParseBool(os.Getenv("HOST_SSL_ENABLED"))
 	if err != nil {
 		sslEnabled = false
 	}
 
-	c.SetCookie("user_id", user.ID, 9999999, "/", "", sslEnabled, false)
-	c.SetCookie("auth_token", authToken, 60*60*24*30, "/", "", sslEnabled, true)
-	c.SetCookie("logged_in", "1", 60*60*24*30, "/", "", sslEnabled, false)
+	if !data.Remember {
+		c.SetCookie("logged_in", "1", 0, "/", "", sslEnabled, false)
+		c.SetCookie("auth_token", authToken, 0, "/", "", sslEnabled, true)
+	} else {
+		c.SetCookie("auth_token", authToken, 60*60*24*30, "/", "", sslEnabled, true)
+		c.SetCookie("logged_in", "1", 60*60*24*30, "/", "", sslEnabled, false)
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"userID":   user.ID,
 		"verified": user.Verified,

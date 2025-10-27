@@ -3,10 +3,25 @@
     --bs-primary-rgb: 124, 58, 237;
     --bs-secondary: #3b82f6;
     --bs-secondary-rgb: 59, 130, 246;
+    --bs-tertiary-bg-rgb: 255, 255, 255;
+    --gradient-bg-lin: linear-gradient(135deg, #f3e8ff 0%, #dbeafe 50%, #e0e7ff 100%);
+    --btn-dynamic: #ffffff;
+}
+
+[data-bs-theme='dark'] {
+    --bs-body-bg: #0d0d0f;
+    --bs-body-color: #ffffff;
+    --btn-dynamic: #0d0d0d;
+    --bs-tertiary-bg-rgb: 25, 25, 25;
+    --gradient-bg-lin: linear-gradient(135deg, rgba(124, 58, 237, 0.2), #3b83f62b 100%);
 }
 
 .gradient-bg {
-    background: linear-gradient(135deg, #f3e8ff 0%, #dbeafe 50%, #e0e7ff 100%);
+    background: var(--gradient-bg-lin);
+}
+
+.bg-purple {
+        background-color: #7c3aed !important;
 }
 
 .gradient-primary {
@@ -71,4 +86,48 @@
     position: sticky;
     top: 0;
     z-index: 1020;
+}
+
+.shadow-bottom {
+    box-shadow: 0 3px 3px rgba(0, 0, 0, 0.2);
+}
+
+.btn-dynamic {
+        background-color: var(--btn-dynamic);
+        color: var(--bs-body-color);
+        border: 0;
+}
+
+.btn-dynamic:hover {
+        background-color: var(--btn-dynamic);
+        filter: brightness(0.9);
+        color: var(--bs-body-color);
+        transition: filter 0.2s;
+}
+
+.btn-dynamic:active {
+  transform: scale(0.98);
+  transition: transform 0.1s;
+}
+
+@keyframes slidefade-in {
+    from {
+        translate: 0 -4px;
+        opacity: 0;
+    }
+    to {
+        translate: 0 0;
+        opacity: 1;
+    }
+}
+
+@keyframes slidefade-out {
+        from {
+            margin-top: 0px;
+            opacity: 1;
+        }
+        to {
+            margin-top: -4px;
+            opacity: 0;
+        }
 }

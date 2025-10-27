@@ -33,6 +33,8 @@ type FFmpegJob struct {
 type FFMpegJobStats struct {
 	Progress float64
 	JobID    string
+	State    string
+	Stopped  bool
 }
 
 type JobQueue struct {
@@ -40,6 +42,11 @@ type JobQueue struct {
 	running atomic.Int32
 	workers int64
 }
+
+var (
+	ErrJobQueueFull = errors.New("job queue is full")
+	ErrJobExists    = errors.New("a job is already running for this user")
+)
 
 // NewJobQueue initializes a new job queue that limits the
 // max amount of jobs that can be queued at once
@@ -50,7 +57,7 @@ func NewJobQueue() *JobQueue {
 	zap.L().Debug("Initializing job queue", zap.Int64("max_jobs", maxJobs))
 
 	return &JobQueue{
-		jobs:    make(chan *FFmpegJob),
+		jobs:    make(chan *FFmpegJob, maxJobs),
 		workers: workers,
 	}
 }
@@ -69,7 +76,6 @@ func (q *JobQueue) worker() {
 		close(job.Done)
 
 		q.running.Add(-1)
-
 		ProgressMap.Delete(job.UserID)
 
 		if err != nil {
@@ -84,14 +90,21 @@ func (q *JobQueue) worker() {
 }
 
 func (q *JobQueue) Enqueue(job *FFmpegJob) error {
-	select {
-	case q.jobs <- job:
-		q.running.Add(1)
-		zap.L().Debug("New ffmpeg job enqueued", zap.Int32("enqueued", q.running.Load()), zap.String("user_id", job.UserID))
-		return nil
-	default:
+	if q.running.Load() >= int32(cap(q.jobs)) {
 		return errors.New("job queue full")
 	}
+
+	ProgressMap.Store(job.UserID, FFMpegJobStats{
+		Progress: 0.0,
+		JobID:    job.ID,
+		State:    "Processing video...",
+		Stopped:  false,
+	})
+
+	q.jobs <- job
+	q.running.Add(1)
+	zap.L().Debug("New ffmpeg job enqueued", zap.Int32("enqueued", q.running.Load()), zap.String("user_id", job.UserID))
+	return nil
 }
 
 func (q *JobQueue) MakeFFmpegFlags(opts *validators.ProcessingOptions, p string) ([]string, float64, error) {
@@ -110,6 +123,7 @@ func (q *JobQueue) MakeFFmpegFlags(opts *validators.ProcessingOptions, p string)
 	if opts.TrimStart > 0 {
 		args = append(args, "-ss", util.FloatToTimestamp(opts.TrimStart))
 	}
+
 	if opts.TrimEnd > 0 && opts.TrimStart >= 0 {
 		args = append(args, "-to", util.FloatToTimestamp(opts.TrimEnd))
 		duration = opts.TrimEnd - opts.TrimStart
@@ -223,11 +237,7 @@ func (q *JobQueue) runFFmpegJob(job *FFmpegJob) error {
 			line := scanner.Text()
 
 			if line == "progress=end" {
-				ProgressMap.Store(job.UserID, FFMpegJobStats{
-					JobID:    job.ID,
-					Progress: 100.0,
-				})
-				return
+				break
 			}
 
 			if after, ok := strings.CutPrefix(line, "out_time_ms="); ok {
@@ -238,6 +248,8 @@ func (q *JobQueue) runFFmpegJob(job *FFmpegJob) error {
 					ProgressMap.Store(job.UserID, FFMpegJobStats{
 						JobID:    job.ID,
 						Progress: percent,
+						State:    "Processing video...",
+						Stopped:  false,
 					})
 				}
 			}
@@ -246,6 +258,8 @@ func (q *JobQueue) runFFmpegJob(job *FFmpegJob) error {
 		ProgressMap.Store(job.UserID, FFMpegJobStats{
 			JobID:    job.ID,
 			Progress: 100.0,
+			State:    "Finishing...",
+			Stopped:  false,
 		})
 	}()
 

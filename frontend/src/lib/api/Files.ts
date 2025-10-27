@@ -1,245 +1,258 @@
-import { PUBLIC_BASE_URL } from '$env/static/public'
-import { jobProgress } from '../../routes/editor/Logic'
+import { PUBLIC_BASE_URL, PUBLIC_CDN_URL } from '$env/static/public'
+import { FFmpegMonitorProgress, StartFFmpegJob } from './FFmpeg'
 import type { UserStats } from './User'
 
-export interface Video {
-    id: number
+export type Video = {
+    id: string
+    file_key: string
+    state: string
     name: string
+    private: boolean
     format: string
-    views: number
     size: number
+    version: number
     duration: number
     created_at: number
-    file_key: string
-    thumb_key: string
-    state: string
+    expires_at?: number
+
+    // Variables not send by the server
+    thumbnail_url?: string
+    video_url?: string
 }
 
-export interface UpdateVideoOpts {
-    name?: string
-    processing_options?: ProcessingOpts
-    save_to_cloud?: boolean
+export type BulkFetchOpts = {
+    page: number
+    limit: number
+    sort: 'newest' | 'oldest' | 'az' | 'za' | 'size-asc' | 'size-desc'
+    tags: string // TODO
 }
 
-export interface ProcessingOpts {
-    targetSize: number
+export type VideoProcessingOpts = {
     trimStart: number
     trimEnd: number
+    targetSize: number
     losslessExport: boolean
-    fps: number
-    format: string
-    saveToCloud: boolean
-    crop: CropOpts
+    cropX: number
+    cropY: number
+    cropW: number
+    cropH: number
 }
 
-export interface ExportOpts {
-    file: File
-    processingOpts: ProcessingOpts
+export type VideoUpdateOpts = {
+    processing_options?: VideoProcessingOpts
+    name?: string
+    private?: boolean
 }
 
-export interface CropOpts {
-        x: number
-        y: number
-        w: number
-        h: number
+export type SearchOpts = {
+    query: string
+    page: number
+    limit: number
 }
 
-export async function LoadVideos(page: number, limit: number): Promise<Video[]> {
-    if (page < 0) {
-        throw new Error("Page can't be smaller than 0")
+export type CropOpts = {
+    x: number
+    y: number
+    w: number
+    h: number
+}
+
+/**
+ * Checks if the logged in user owns a file
+ * @param id ID of the file
+ * @returns ownership status
+ */
+export async function CheckFileOwnership(id: string): Promise<boolean> {
+    const req = await fetch(`${PUBLIC_BASE_URL}/api/files/${id}/owns`, { credentials: 'include' })
+    const body = await req.json()
+
+    if (!req.ok) {
+        console.error(`[Files/CheckFileOwnership]: Request failed, requestID: ${body.requestID || 'Unknown'}`, body.error)
+        throw new Error(body.error, { cause: req })
     }
 
-    if (limit < 1 || limit > 250) {
-        throw new Error('Limit must be between 1-250')
-    }
-
-    const resp = await fetch(`${PUBLIC_BASE_URL}/api/files/bulk?limit=${limit}&page=${page}`, {
-        method: 'GET',
-        credentials: 'include'
-    })
-
-    const body = await resp.json()
-    if (resp.status === 200) return body
-
-    console.error(`[${body.requestID}] LoadVideos request failed: ${body.error}`)
-    throw new Error(body.error)
+    return body.owns
 }
 
-export async function LoadVideo(id: string | number): Promise<Video | undefined> {
-    const resp = await fetch(`${PUBLIC_BASE_URL}/api/files/${id}`, {
-        method: 'GET',
-        credentials: 'include'
-    })
-
-    const body = await resp.json()
-
-    if (resp.status === 200) return body
-
-    console.error(`[${body.requestID}] LoadVideos request failed: ${body.error}`)
-    throw new Error(body.error)
-}
-
-export async function SearchVideos(search: string, limit: number): Promise<Video[]> {
-    if (search === '') {
-        return LoadVideos(limit, 0)
-    }
-
-    const resp = await fetch(`${PUBLIC_BASE_URL}/api/files/search?query=${encodeURIComponent(search)}&limit=${limit}`, {
-        credentials: 'include'
-    })
-
-    const body = await resp.json()
-
-    if (resp.status === 200) return body
-
-    console.error(`[${body.requestID}] LoadVideos request failed: ${body.error}`)
-    throw new Error(body.error)
-}
-
-export async function DeleteVideo(videoID: number | string): Promise<UserStats> {
-    const resp = await fetch(`${PUBLIC_BASE_URL}/api/files/${videoID}`, {
-        method: 'DELETE',
-        credentials: 'include'
-    })
-
-    const body = await resp.json()
-
-    if (resp.status === 200) {
-        return body
-    }
-
-    throw new Error(body.error)
-}
-
-export async function OwnsVideo(videoID: number | string): Promise<boolean> {
-    const resp = await fetch(`${PUBLIC_BASE_URL}/api/files/${videoID}/owns`, {
-        method: 'GET',
-        credentials: 'include'
-    })
-
-    const body = await resp.json()
-    if (resp.status === 200) return body.owns
-
-    throw new Error(body.error)
-}
-
-export async function UpdateVideo(videoID: number | string, opts: UpdateVideoOpts): Promise<Video | undefined> {
-    if (opts.processing_options) {
-        // Get job ID
-        const jobIDResp = await fetch(`${PUBLIC_BASE_URL}/api/ffmpeg/start`, {
-            method: 'GET',
-            credentials: 'include'
-        })
-
-        if (jobIDResp.status != 200) {
-            const body = await jobIDResp.json()
-
-            console.error('Failed to initialize ffmpeg job', body.requestID, body.error)
-            throw new Error(body.error)
-        }
-
-        const jobID = (await jobIDResp.json()).jobID
-
-        const source = new EventSource(`${PUBLIC_BASE_URL}/api/ffmpeg/progress?jobID=${jobID}`, {
-            withCredentials: true
-        })
-
-        source.onmessage = function (event) {
-            const v = parseFloat(event.data)
-
-            if (v >= 100) {
-                source.close()
-            }
-
-            jobProgress.set(v)
-        }
-    }
-
-    const resp = await fetch(`${PUBLIC_BASE_URL}/api/files/${videoID}`, {
-        method: 'PATCH',
+/**
+ * Fetches a single file from a server by id
+ * @param id File ID to fetch
+ * @returns Video details
+ */
+export async function FetchFile(id: string): Promise<Video> {
+    const req = await fetch(`${PUBLIC_BASE_URL}/api/files/${id}`, {
         credentials: 'include',
-        body: JSON.stringify(opts)
+        method: 'GET'
     })
+    const body = await req.json()
 
-    const body = await resp.json()
+    if (!req.ok) {
+        console.error(`[Files/FetchFile]: Request failed, requestID: ${body.requestID}`, body.error)
+        throw new Error(body.error, { cause: req })
+    }
 
-    if (resp.status === 200) return body
-
-    console.error(`[${body.requestID}] UpdateVideo request failed: ${body.error}`)
-    throw new Error(body.error)
+    // Discard the user
+    return body.file
 }
 
-export async function ExportVideo(o: ExportOpts, token: string) {
-    const { trimStart, trimEnd, targetSize, losslessExport, saveToCloud } = o.processingOpts
-
-    const form = new FormData()
-    form.append('file', o.file)
-
-    if (trimStart > 0) form.append('trimStart', `${trimStart}`)
-    if (trimEnd > 0) form.append('trimEnd', `${trimEnd}`)
-    if (targetSize > 0) form.append('targetSize', `${targetSize}`)
-    if (saveToCloud) form.append('saveToCloud', `${saveToCloud}`)
-    form.append('losslessExport', `${losslessExport}`)
-    if (o.processingOpts.crop) form.append("crop", JSON.stringify(o.processingOpts.crop))
-
-    // Get job ID
-    const jobIDResp = await fetch(`${PUBLIC_BASE_URL}/api/ffmpeg/start`, {
-        method: 'GET',
-        credentials: 'include'
-    })
-
-    const body = await jobIDResp.json()
-    if (jobIDResp.status != 200) {
-        console.error('Failed to initialize ffmpeg job', body.requestID, body.error)
-        throw new Error(body.error)
-    }
-
-    const jobID = body.jobID
-
-    const source = new EventSource(`${PUBLIC_BASE_URL}/api/ffmpeg/progress`, {
-        withCredentials: true
-    })
-
-    source.onmessage = function (event) {
-        const v = parseFloat(event.data)
-
-        if (v >= 100) {
-            source.close()
-        }
-
-        jobProgress.set(v)
-    }
-
-    const resp = await fetch(`${PUBLIC_BASE_URL}/api/ffmpeg/process?jobID=${jobID}`, {
+/**
+ * Fetches multiple files of a user
+ * @param o Fetch options
+ */
+export async function FetchFiles(o: BulkFetchOpts): Promise<Array<Video>> {
+    const req = await fetch(`${PUBLIC_BASE_URL}/api/files/bulk`, {
+        credentials: 'include',
         method: 'POST',
-        headers: {
-            TurnstileToken: token
-        },
-        credentials: 'include',
-        body: form
+        body: JSON.stringify(o)
     })
+    const body = await req.json()
 
-    if (resp.status === 200) {
-        return await resp.blob()
+    if (!req.ok) {
+        console.error(`[Files/FetchFiles]: Request failed, requestID: ${body.requestID}`, body.error)
+        throw new Error(body.error, { cause: req })
     }
 
-    const bodyResp = await resp.json()
-    throw new Error(bodyResp.error)
+    // Discard the user
+    return body
 }
 
-export async function UploadVideo(f: File): Promise<Video | undefined> {
+/**
+ * Uploads a file without any editing options
+ * @param f File to be uploaded
+ */
+export async function UploadFile(f: File): Promise<Video> {
     const form = new FormData()
 
     form.append('file', f)
 
-    const resp = await fetch(`${PUBLIC_BASE_URL}/api/files`, {
-        method: 'POST',
+    const req = await fetch(`${PUBLIC_BASE_URL}/api/files`, {
         credentials: 'include',
+        method: 'POST',
         body: form
     })
+    const body = await req.json()
 
-    const body = await resp.json()
+    if (!req.ok) {
+        console.error(`[Files/UploadFile]: Request failed, requestID: ${body.requestID}`, body.error)
+        throw new Error(body.error, { cause: req })
+    }
 
-    if (resp.status === 200) return body
-    throw new Error(body.error)
+    // Discard the user
+    return body
+}
+
+/**
+ * Updates a file with processing options
+ * @param id File ID to update
+ * @param o Editing options
+ */
+export async function UpdateFile(id: string, o: VideoUpdateOpts): Promise<Video> {
+    if (o.processing_options) {
+        const jobID = await StartFFmpegJob()
+        FFmpegMonitorProgress(jobID)
+    }
+
+    const req = await fetch(`${PUBLIC_BASE_URL}/api/files/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(o),
+        credentials: 'include'
+    })
+
+    const body = await req.json()
+
+    if (!req.ok) {
+        console.error(`[Files/UpdateFile]: Request failed, requestID: ${body.requestID}`, body.error)
+        throw new Error(body.error, { cause: req })
+    }
+
+    return body
+}
+
+/**
+ * Deletes multiple files from the server
+ * @param ids IDS of files to remove
+ */
+export async function DeleteFiles(ids: Array<string>): Promise<UserStats> {
+    const req = await fetch(`${PUBLIC_BASE_URL}/api/files`, {
+        credentials: 'include',
+        method: 'DELETE',
+        body: JSON.stringify({
+            ids: ids
+        })
+    })
+    const body = await req.json()
+
+    if (!req.ok) {
+        console.error(`[Files/DeleteFile]: Request failed, requestID: ${body.requestID}`, body.error)
+        throw new Error(body.error, { cause: req })
+    }
+
+    return body
+}
+
+/**
+ * Searches for videos matching a search query
+ * @param q Search options
+ */
+export async function SearchFiles(o: SearchOpts): Promise<Array<Video>> {
+    const req = await fetch(`${PUBLIC_BASE_URL}/api/files/search`, {
+        credentials: 'include',
+        method: 'POST',
+        body: JSON.stringify(o)
+    })
+    const body = await req.json()
+
+    if (!req.ok) {
+        console.error(`[Files/SearchFiles]: Request failed, requestID: ${body.requestID}`, body.error)
+        throw new Error(body.error, { cause: req })
+    }
+
+    for (const video of body) {
+        video.thumbnail_url = `${PUBLIC_CDN_URL}/${video.file_key.replace('.mp4', '.webp')}`
+        video.video_url = `${PUBLIC_CDN_URL}/${video.file_key}`
+    }
+    return body
+}
+
+/**
+ * Uploads a video for processing and downloads or saves it to the cloud
+ * @param f File to process
+ * @param o Processing options
+ * @param token Turnstile token
+ * @param saveToCloud Should the video be saved to cloud?
+ */
+export async function ExportVideo(f: File, o: VideoProcessingOpts, token: string, saveToCloud: false): Promise<Blob>
+export async function ExportVideo(f: File, o: VideoProcessingOpts, token: string, saveToCloud: true): Promise<Video>
+export async function ExportVideo(f: File, o: VideoProcessingOpts, token: string, saveToCloud = false): Promise<Blob | Video> {
+    const form = new FormData()
+
+    form.append('file', f)
+    form.append('trimStart', `${o.trimStart}`)
+    form.append('trimEnd', `${o.trimEnd}`)
+    form.append('targetSize', `${o.targetSize}`)
+    form.append('losslessExport', `${o.losslessExport}`)
+    form.append('saveToCloud', `${saveToCloud}`)
+    form.append('crop[x]', `${o.cropX}`)
+    form.append('crop[y]', `${o.cropY}`)
+    form.append('crop[w]', `${o.cropW}`)
+    form.append('crop[h]', `${o.cropH}`)
+
+    const jobID = await StartFFmpegJob()
+    FFmpegMonitorProgress(jobID)
+    const req = await fetch(`${PUBLIC_BASE_URL}/api/ffmpeg/process?jobID=${jobID}`, {
+        method: 'POST',
+        credentials: 'include',
+        body: form,
+        headers: {
+            TurnstileToken: token
+        }
+    })
+
+    if (!req.ok) {
+        const body = await req.json()
+        console.error(`[Files/ExportVideo]: Request failed, requestID: ${body.requestID}`, body.error)
+        throw new Error(body.error, { cause: req })
+    }
+
+    return saveToCloud ? await req.json() : await req.blob()
 }

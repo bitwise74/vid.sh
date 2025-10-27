@@ -12,6 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/smithy-go"
+	"go.uber.org/zap"
 )
 
 type S3Client struct {
@@ -51,6 +52,35 @@ func NewS3() (*S3Client, error) {
 
 		return nil, fmt.Errorf("failed to check if bucket exists, %w", err)
 	}
+
+	// Create any missing folders
+	_, err = client.HeadObject(context.TODO(), &s3.HeadObjectInput{
+		Bucket: bucket,
+		Key:    aws.String("avatars/"),
+	})
+	if err != nil {
+		var apiErr smithy.APIError
+		if errors.As(err, &apiErr) {
+			// If the object does not exist, create it
+			if apiErr.ErrorCode() == "NotFound" {
+				_, err = client.PutObject(context.TODO(), &s3.PutObjectInput{
+					Bucket: bucket,
+					Key:    aws.String("avatars/"),
+				})
+				if err != nil {
+					return nil, fmt.Errorf("failed to create 'avatars' folder, %w", err)
+				}
+
+				zap.L().Info("Created avatars/ directory in S3 bucket")
+			} else {
+				return nil, fmt.Errorf("failed to check if 'avatars/' exists, %w", err)
+			}
+		} else {
+			return nil, fmt.Errorf("failed to check if 'avatars/' exists, %w", err)
+		}
+	}
+
+	zap.L().Info("S3 client initialized", zap.String("bucket", *bucket))
 
 	return &S3Client{
 		C:      client,

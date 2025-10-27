@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { toastStore, type Toast } from './toastStore'
+    import { toastStore, type Toast } from '../../stores/ToastStore'
 
     let { toast }: { toast: Toast } = $props()
     let isLeaving = $state(false)
@@ -12,8 +12,8 @@
                 return 'bi-exclamation-circle'
             case 'warning':
                 return 'bi-exclamation-triangle'
-            case 'info':
-                return 'bi-info-circle'
+            case 'question':
+                return 'bi-question-circle'
             default:
                 return 'bi-info-circle'
         }
@@ -27,30 +27,71 @@
                 return 'danger'
             case 'warning':
                 return 'warning'
-            case 'info':
-                return 'black'
+            case 'loading':
+                return 'transparent'
             default:
                 return 'black'
         }
     }
+
+    if (toast.duration && toast.duration > 0 && toast.dismissible) {
+        setTimeout(() => {
+            isLeaving = true
+            setTimeout(() => {
+                toastStore.remove(toast.id!)
+            }, 1500)
+        }, toast.duration)
+    }
 </script>
 
-<div class="toast show align-items-center text-bg-light border-1 {isLeaving ? 'slidefade-out' : 'slidefade-in'}" role="alert" aria-live="assertive" aria-atomic="true">
+<div class="toast bg-body-tertiary show align-items-center border-1 {isLeaving ? 'slidefade-out' : 'slidefade-in'}" role="alert" aria-live="assertive" aria-atomic="true">
     <div class="d-flex">
         <div class="toast-body d-flex align-items-center">
-            <i class="{getToastIcon(toast.type)} me-3 fs-5"></i>
-            <div class="flex-grow-1">
-                <div class="fw-semibold">{toast.title}</div>
-                {#if toast.message}
-                    <div class="small opacity-75">{toast.message}</div>
+            {#if toast.type === 'loading'}
+                <div class="spinner-border text-success me-3 spinner-border-sm" role="status"></div>
+            {:else}
+                <i class="{getToastIcon(toast.type)} fs-5 me-3"></i>
+            {/if}
+
+            <!-- text + buttons stacked -->
+            <div class="flex-grow-1 d-flex flex-column">
+                <div>
+                    <div class="fw-semibold">{toast.title}</div>
+                    {#if toast.message}
+                        {#if toast.message.at(0) === '<'}
+                            {@html toast.message}
+                        {:else}
+                            {toast.message}
+                        {/if}
+                    {/if}
+                </div>
+
+                {#if toast.buttons && toast.buttons.length > 0}
+                    <div class="mt-2 d-flex flex-wrap gap-2">
+                        {#each toast.buttons as button}
+                            <button
+                                type="button"
+                                class="btn btn-sm {button.class || 'btn-outline-primary'}"
+                                onclick={() => {
+                                    button.action()
+                                    if (toast.dismissible) toastStore.remove(toast.id)
+                                }}>
+                                {button.text}
+                            </button>
+                        {/each}
+                    </div>
                 {/if}
             </div>
         </div>
+
         {#if toast.dismissible}
-            <button type="button" class="btn-close btn-close-dark me-2 m-auto" aria-label="Close" onclick={() => toastStore.remove(toast.id)}></button>
+            <button type="button" class="btn-close btn-close-dark m-auto me-2" aria-label="Close" onclick={() => toastStore.remove(toast.id)}> </button>
         {/if}
     </div>
-    <div style="--toast-duration:{toast.duration}ms;" class="toast-progress bg-{getToastColor(toast.type)}"></div>
+
+    {#if toast.dismissible}
+        <div style="--toast-duration:{toast.duration}ms;" class="toast-progress bg-{getToastColor(toast.type)}"></div>
+    {/if}
 </div>
 
 <style>
@@ -59,30 +100,6 @@
         max-width: 400px;
         position: relative;
         overflow: hidden;
-    }
-
-    /* Entrance animation */
-    @keyframes slidefade-in {
-        from {
-            transform: translateY(30%);
-            opacity: 0;
-        }
-        to {
-            transform: translateY(0);
-            opacity: 1;
-        }
-    }
-
-    /* Exit animation */
-    @keyframes slidefade-out {
-        from {
-            transform: translateY(0);
-            opacity: 1;
-        }
-        to {
-            transform: translateY(30%);
-            opacity: 0;
-        }
     }
 
     .slidefade-in {

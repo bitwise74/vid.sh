@@ -27,7 +27,7 @@ func (s StringSlice) Value() (driver.Value, error) {
 	return strings.Join(s, ","), nil
 }
 
-// Scan implements the sql.Scanner intterface.
+// Scan implements the sql.Scanner interface.
 // This defines how the database value is converted back into go.
 func (s *StringSlice) Scan(value interface{}) error {
 	if value == nil {

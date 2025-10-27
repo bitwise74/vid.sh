@@ -1,74 +1,33 @@
 <script lang="ts">
-    import { goto } from '$app/navigation'
-    import { LoadVideos, SearchVideos, UploadVideo, type Video } from '$lib/api/Files'
-    import { LoadInitialData } from '$lib/api/User'
+    import { PUBLIC_CDN_URL } from '$env/static/public'
+    import { FetchFiles, UploadFile, type Video } from '$lib/api/Files'
+    import VideoList from '$lib/components/dashboard/List.svelte'
+    import Search from '$lib/components/dashboard/Search.svelte'
+    import StatBlocks from '$lib/components/dashboard/StatBlocks.svelte'
     import Header from '$lib/components/Header.svelte'
-    import StatBlocks from '$lib/components/StatBlocks.svelte'
-    import { toastStore } from '$lib/components/toast/toastStore'
-    import VideoList from '$lib/components/video/List.svelte'
-    import { stats, videos } from '$lib/stores/VideoStore'
+    import { videoSelectionToast } from '$lib/components/toast/SelectionToast'
+    import { loadedVideosCount, user } from '$lib/stores/AppVars'
+    import { toastStore } from '$lib/stores/ToastStore'
+    import { videos } from '$lib/stores/VideoStore'
     import { onDestroy, onMount } from 'svelte'
 
     let page = 0
-    // Used to stop requests when everything has been loaded
-    let loadedVideos = 0
-    let loading = false
+    let isLoading = false
     let perPage = $state('10')
     let sortBy = $state('newest')
 
-    let dropOverlay: HTMLElement | null
-    let timeout: number | undefined
-    let sentinel: Element
-    let observer = new IntersectionObserver((entries) => {
-        if (entries[0].isIntersecting && loadedVideos < $stats.uploadedFiles) {
-            loadModeContent()
-        }
-    })
+    let dropOverlay: HTMLElement | null = null
+    let sentinel: Element | null = null
+    let observer: IntersectionObserver | null = null
 
-    onMount(async () => {
-        dropOverlay = document.getElementById('dropOverlay')
-        window.addEventListener('dragenter', showOverlay)
-        window.addEventListener('dragend', hideOverlay)
-
-        try {
-            const data = await LoadInitialData()
-
-            videos.set(data.videos)
-            stats.set(data.stats)
-            loadedVideos = data.videos.length
-        } catch (error) {
-            toastStore.error({
-                title: 'Failed to load dashboard',
-                message: error.message,
-                duration: 10000
-            })
-            console.error('GET API/USERS: Failed to load initial data', error)
-            goto('/')
-        }
-
-        if (sentinel) {
-            observer.observe(sentinel)
-        }
-    })
-
-    onDestroy(() => {
-        clearTimeout(timeout)
-        observer?.disconnect()
-        window.removeEventListener('dragenter', showOverlay)
-        window.removeEventListener('dragend', hideOverlay)
-    })
-
-    function handleInput(e: any) {
-        clearTimeout(timeout)
-        const search = e.target.value
-
-        timeout = setTimeout(async () => {
-            videos.set(await SearchVideos(search, parseInt(perPage)))
-        }, 300)
+    const allLoaded = () => {
+        // TODO: find way to not spam requests
+        if (!$user || !$user.stats) return false
+        return $loadedVideosCount >= $user.stats.uploadedFiles
     }
 
-    function showOverlay(e: any) {
-        if (e.dataTransfer.types.includes('Files') && dropOverlay) {
+    function showOverlay(e: DragEvent) {
+        if (e.dataTransfer?.types.includes('Files') && dropOverlay) {
             dropOverlay.classList.remove('d-none')
             dropOverlay.classList.add('d-flex')
         }
@@ -80,11 +39,68 @@
         dropOverlay.classList.remove('d-flex')
     }
 
+    onMount(async () => {
+        if (typeof window === 'undefined') return
+
+        dropOverlay = document.getElementById('dropOverlay')
+        window.addEventListener('dragenter', showOverlay)
+        window.addEventListener('dragend', hideOverlay)
+
+        if (sentinel) {
+            observer = new IntersectionObserver((entries) => {
+                // Clean up
+                if (allLoaded()) {
+                    observer?.disconnect()
+
+                    if (sentinel?.parentNode) {
+                        sentinel.parentNode.removeChild(sentinel)
+                    }
+
+                    return
+                }
+
+                if (entries[0].isIntersecting) {
+                    loadModeContent()
+                }
+            })
+            observer.observe(sentinel)
+        }
+
+        // Check for missing data
+        if ($user.avatarHash == '' && localStorage.getItem('notifNoAvatar') !== 'true') {
+            toastStore.info({
+                title: 'You can set a profile picture now',
+                message: "Go to settings for details (this won't show up again)",
+                duration: 10000
+            })
+            localStorage.setItem('notifNoAvatar', 'true')
+        }
+
+        if ($user.username == '' && localStorage.getItem('notifNoUsername') !== 'true') {
+            setTimeout(() => {
+                toastStore.info({
+                    title: "You don't have a nickname set yet",
+                    message: "Go to settings for details (this won't show up again)",
+                    duration: 10000
+                })
+            }, 3500)
+            localStorage.setItem('notifNoUsername', 'true')
+        }
+    })
+
+    onDestroy(() => {
+        if (typeof window !== 'undefined') {
+            window.removeEventListener('dragenter', showOverlay)
+            window.removeEventListener('dragend', hideOverlay)
+        }
+        observer?.disconnect()
+    })
+
     async function handleDrop(e: DragEvent) {
         hideOverlay()
         e.preventDefault()
 
-        if (!e.dataTransfer) return
+        if (!e.dataTransfer || !videos) return
 
         const files = Array.from(e.dataTransfer.files)
         const videoFile = files.find((f) => ['video/mp4', 'video/quicktime', 'video/x-matroska'].includes(f.type))
@@ -113,12 +129,12 @@
                 format: 'video/mp4',
                 created_at: Date.now() / 1000,
                 state: 'processing'
-            } as Video,
+            } as unknown as Video,
             ...$videos
         ])
 
         try {
-            const newVid = await UploadVideo(videoFile)
+            const newVid = await UploadFile(videoFile)
             if (!newVid) return
 
             videos.set([newVid, ...$videos.splice(1)])
@@ -134,13 +150,27 @@
     }
 
     async function loadModeContent() {
-        if (loading) return
-        loading = true
+        if (isLoading) return
+        isLoading = true
 
         page++
 
         try {
-            const newVideos = await LoadVideos(page, parseInt(perPage))
+            const newVideos = await FetchFiles({
+                limit: parseInt(perPage),
+                page: page,
+                sort: sortBy as any, // TODO: fix this ugly
+                tags: ''
+            })
+
+            for (const vid of newVideos) {
+                vid.thumbnail_url = `${PUBLIC_CDN_URL}/${vid.file_key.replace('.mp4', '.webp')}`
+                vid.video_url = `${PUBLIC_CDN_URL}/${vid.file_key}`
+            }
+
+            loadedVideosCount.set($loadedVideosCount + newVideos.length)
+
+            // TODO: should append based on sort order
             videos.set([...$videos, ...newVideos])
         } catch (error) {
             toastStore.error({
@@ -148,28 +178,29 @@
                 message: error.message
             })
         } finally {
-            loading = false
+            isLoading = false
         }
     }
+
+    $effect(() => videoSelectionToast.subscribe(() => {}))
 </script>
 
 <svelte:head>
     <title>Dashboard - vid.sh</title>
 </svelte:head>
 
-<div class="min-vh-100 bg-light position-relative">
-    <!-- svelte-ignore a11y_no_static_element_interactions -->
-    <!-- svelte-ignore a11y_click_events_have_key_events -->
+<div class="min-vh-100 position-relative">
     <div
-        class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-none
-           justify-content-center align-items-center z-3"
+        class="position-fixed w-100 h-100 bg-dark d-none justify-content-center align-items-center z-3
+           start-0 top-0 bg-opacity-50"
         id="dropOverlay"
+        role="none"
         ondragenter={showOverlay}
         ondragover={(e) => e.preventDefault()}
         ondragend={hideOverlay}
         ondragleave={hideOverlay}
         ondrop={handleDrop}>
-        <div class="border border-3 border-dashed border-light rounded-4 p-5 text-center">
+        <div class="border-3 border-light rounded-3 border border-dashed p-5 text-center">
             <i class="bi bi-cloud-upload text-light display-1 mb-3"></i>
             <h3 class="text-light fw-semibold">Drop files to upload</h3>
         </div>
@@ -178,39 +209,19 @@
     <Header title="Dashboard" page="dashboard" />
     <main class="container py-4">
         <StatBlocks />
+        <Search tags={[]} />
+        <VideoList />
 
-        <div class="row g-3 mb-4">
-            <div class="col-lg-8 col-md-7">
-                <div class="input-group">
-                    <span class="input-group-text">
-                        <i class="bi bi-search"></i>
-                    </span>
-                    <input type="text" class="form-control" placeholder="Search videos..." oninput={handleInput} />
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-3 col-sm-6">
-                <select class="form-select" bind:value={sortBy} disabled>
-                    <option value="newest">Newest First</option>
-                    <option value="oldest">Oldest First</option>
-                    <option value="az">Name A-Z</option>
-                    <option value="size">Size</option>
-                    <option value="views">Most Views</option>
-                </select>
-            </div>
-            <div class="col-lg-1 col-md-2 col-sm-6">
-                <select class="form-select" bind:value={perPage} placeholder="Results per page">
-                    <option value="10">10</option>
-                    <option value="20">20</option>
-                    <option value="50">50</option>
-                    <option value="100">100</option>
-                    <option value="250">250</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="row">
-            <VideoList />
-        </div>
         <div bind:this={sentinel}></div>
     </main>
+
+    <div class="text-center mb-4">
+        {#if $user && $user.stats && $user.stats.uploadedFiles != 0 && $user.stats.uploadedFiles > parseInt(perPage)}
+            {#if !allLoaded()}
+                <p class="text-muted small">Scroll down to load more</p>
+            {:else}
+                <p class="text-muted small">All videos loaded</p>
+            {/if}
+        {/if}
+    </div>
 </div>

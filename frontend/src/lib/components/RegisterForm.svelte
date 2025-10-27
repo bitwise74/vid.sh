@@ -1,13 +1,12 @@
 <script lang="ts">
     import { goto } from '$app/navigation'
-    import { Register } from '$lib/api/Auth'
     import '../../app.css'
-    import { toastStore } from './toast/toastStore'
+    import { toastStore } from '../stores/ToastStore'
+    import { Register } from '$lib/api/Auth'
 
     let showPassword = $state(false)
     let showConfirmPassword = $state(false)
     let isLoading = $state(false)
-    let success = $state(false)
     let formData = $state({
         email: '',
         password: '',
@@ -74,8 +73,8 @@
     }
 </script>
 
-<div class="card shadow-lg border-0" style="max-width: 28rem; margin: 0 auto;">
-    <div class="card-header bg-white text-center border-0 py-4">
+<div class="card border-0 shadow-lg" style="max-width: 28rem; margin: 0 auto;">
+    <div class="border-0 py-4 text-center">
         <h2 class="card-title h3 fw-bold mb-2">Create your account</h2>
         <p class="text-muted-foreground mb-0">Provide your details in the form</p>
     </div>
@@ -175,10 +174,10 @@
                 {/if}
             </button>
 
-            <div class="text-center mb-4">
+            <div class="mb-4 text-center">
                 <div class="position-relative">
                     <hr />
-                    <span class="position-absolute top-50 start-50 translate-middle bg-white px-3 small text-muted"> Or continue with </span>
+                    <span class="position-absolute top-50 start-50 translate-middle small text-muted px-3 bg-body-tertiary"> Or continue with </span>
                 </div>
             </div>
 

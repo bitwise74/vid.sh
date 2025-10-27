@@ -20,7 +20,7 @@ type ArgonHash struct {
 	KeyLength   uint32
 }
 
-func New() *ArgonHash {
+func new() *ArgonHash {
 	return &ArgonHash{
 		Memory:      64 * 1024,
 		Iterations:  3,
@@ -29,6 +29,10 @@ func New() *ArgonHash {
 		KeyLength:   32,
 	}
 }
+
+var (
+	Argon *ArgonHash = new()
+)
 
 func (a *ArgonHash) GenerateFromPassword(p string) (encoded string, err error) {
 	salt, err := genRandByt(a.SaltLength)

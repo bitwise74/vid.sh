@@ -1,13 +1,21 @@
 <script lang="ts">
     import { losslessExport, targetSize } from '$lib/stores/EditOptions'
+    import { onMount } from 'svelte'
     import RangeSlider from 'svelte-range-slider-pips'
 
     let { videoSize }: { videoSize: number } = $props()
     let isCompressingDisabled = videoSize < 5
 
-    const handleCompressChange = (e: CustomEvent<{ value: number }>) => {
-        targetSize.set(e.detail.value)
-    }
+    onMount(() => {
+        const target = localStorage.getItem('edit_target_size')
+        if (target === null) return
+
+        const targetNum = parseInt(target)
+        if (isNaN(targetNum)) return
+
+        if (targetNum >= videoSize) return
+        targetSize.set(parseInt(target))
+    })
 </script>
 
 <div class="tab-pane" id="compress-tab">
@@ -23,17 +31,16 @@
 
         <div style="cursor: pointer;">
             <RangeSlider
+                darkmode="auto"
                 spring={false}
-                value={0}
+                bind:value={$targetSize}
                 disabled={isCompressingDisabled}
                 min={0}
                 max={videoSize}
                 step={1}
                 float
-                on:change={handleCompressChange}
                 formatter={(val) => {
                     if (val == 0 || val == videoSize) {
-                        targetSize.set(-1)
                         return 'Not set'
                     }
 

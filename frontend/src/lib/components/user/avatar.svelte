@@ -1,42 +1,58 @@
-<script>
-    let open = false
-
-    function toggleDropdown() {
-        open = !open
-    }
-
-    function closeDropdown(event) {
-        if (!event.target.closest('.dropdown')) {
-            open = false
-        }
-    }
-
-    window.addEventListener('click', closeDropdown)
+<script lang="ts">
+    import { PUBLIC_CDN_URL } from '$env/static/public'
+    import { Logout } from '$lib/api/Auth'
+    import { user } from '$lib/stores/AppVars'
+    import { UploadFileButton } from '$lib/utils/upload'
 </script>
-
 <div class="dropdown">
-    <button class="btn d-flex align-items-center text-decoration-none" on:click|stopPropagation={toggleDropdown}>
-        <img src="placeholder.svg" alt="User Avatar" class="rounded-circle me-2" width="40" height="40" />
-        <i class="bi bi-caret-down-fill"></i>
+    <button class="btn d-flex align-items-center text-decoration-none border-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+        <img src={$user.avatarHash ? `${PUBLIC_CDN_URL}/avatars/${$user.avatarHash}` : 'placeholder.svg'} alt="User Avatar" class="rounded-circle object-fit-cover me-1" width="40" height="40" />
+        <i class="bi-caret-down-fill"></i>
     </button>
 
-    {#if open}
-        <ul class="dropdown-menu dropdown-menu-end show" style="position: absolute;">
-            <li><a class="dropdown-item" href="/profile">Profile</a></li>
-            <li><a class="dropdown-item" href="/settings">Settings</a></li>
-            <li><hr class="dropdown-divider" /></li>
-            <li><a class="dropdown-item text-danger" href="/logout">Logout</a></li>
-        </ul>
-    {/if}
+    <ul class="dropdown-menu dropdown-menu-end animate">
+        {#if $user.publicProfileEnabled}
+            <li>
+                <a class="dropdown-item" href={`/u/${$user.username}`}>
+                    <i class="bi-person me-2"></i>My Profile
+                </a>
+            </li>
+        {/if}
+        <li>
+            <a class="dropdown-item" href="/settings">
+                <i class="bi-gear me-2"></i>Settings
+            </a>
+        </li>
+        <li><hr class="dropdown-divider" /></li>
+        <li>
+            <button class="dropdown-item" onclick={() => UploadFileButton()}>
+                <i class="bi-file-earmark-arrow-up me-2"></i>Upload Video
+            </button>
+        </li>
+        <li>
+            <a class="dropdown-item" href="/editor">
+                <i class="bi-pencil-square me-2"></i>Editor
+            </a>
+        </li>
+        <li>
+            <a class="dropdown-item" href="/dashboard">
+                <i class="bi-grid me-2"></i>Dashboard
+            </a>
+        </li>
+        <li><hr class="dropdown-divider" /></li>
+        <li style="pointer-events: none;">
+            <span class="dropdown-item text-muted small">Signed in as <b>{$user.username}</b></span>
+        </li>
+        <li>
+            <button class="dropdown-item text-danger" onclick={() => Logout()}>
+                <i class="bi-box-arrow-right me-2"></i>Log out
+            </button>
+        </li>
+    </ul>
 </div>
 
 <style>
-    .dropdown {
-        position: relative;
-    }
-    .dropdown-menu {
-        display: block;
-        top: 100%;
-        margin-top: 0.25rem;
+    .animate {
+        animation: slidefade-in 0.35s cubic-bezier(0.16, 1, 0.3, 1);
     }
 </style>

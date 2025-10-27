@@ -1,23 +1,29 @@
 <script lang="ts">
-    import { PUBLIC_CDN_URL } from '$env/static/public'
-    import { DeleteVideo, UpdateVideo } from '$lib/api/Files'
-    import { currentVideoURL, stats, videos } from '$lib/stores/VideoStore'
-    import { toastStore } from '../toast/toastStore'
+    import { PUBLIC_BASE_URL, PUBLIC_CDN_URL } from '$env/static/public'
+    import { DeleteFiles, UpdateFile, type Video } from '$lib/api/Files'
+    import { selectedVideos } from '$lib/stores/appControl'
+    import { user } from '$lib/stores/AppVars'
+    import { currentVideoURL, videos } from '$lib/stores/VideoStore'
+    import { toastStore } from '../../stores/ToastStore'
 
-    const { fileKey } = $props()
+    type Props = {
+        video: Video
+        isProfile?: boolean
+        isListView?: boolean
+    }
+
+    const { video, isProfile = false }: Props = $props()
 
     let showRenameModal = $state(false)
-    let currentVideoId: number
+    let currentVideoId: string
     let renameValue = $state('')
     let oldName = ''
     let ext = ''
 
     async function handleVideoAction(action: string) {
-        const video = $videos.find((v) => v.file_key === fileKey)
-        if (!video) return
-        const videoURL = `${PUBLIC_CDN_URL}/${fileKey}`
+        let videoURL = `${PUBLIC_CDN_URL}/${video.file_key}`
 
-        ext = '.' + fileKey.split('.')[fileKey.split('.').length - 1]
+        ext = '.' + video.file_key.split('.')[video.file_key.split('.').length - 1]
 
         switch (action) {
             case 'play':
@@ -27,42 +33,45 @@
                 window.location.href = `/editor?id=${video.id}`
                 break
             case 'rename':
+                // Quick and dirty, TODO: improve later
                 oldName = video.name
-                renameValue = video.name
+                renameValue = video.name.replace('.mp4', '')
                 currentVideoId = video.id
                 showRenameModal = true
-                break
-            case 'assign-labels':
                 break
             case 'download':
                 window.location.href = videoURL
                 break
             case 'share':
+                if (localStorage.getItem('optRichEmbeds') === 'true') {
+                    videoURL = `${PUBLIC_BASE_URL}/v/${video.id}`
+                }
+
                 if (navigator.share) {
                     await navigator.share({ url: videoURL })
                 } else if (navigator.clipboard) {
                     await navigator.clipboard.writeText(videoURL)
                     toastStore.info({
-                        title: 'Link copied to clipboard',
-                        duration: 2000
+                        title: 'Link copied to clipboard'
                     })
                 }
                 break
-            case 'copy-link':
-                toastStore.info({
-                    title: 'Link copied to clipboard',
-                    duration: 2000
-                })
-                navigator.clipboard.writeText(videoURL)
-                break
             case 'delete':
-                const resp = await DeleteVideo(video.id)
-                videos.set($videos.filter((v) => v.id != video.id))
-                stats.set(resp)
-                toastStore.success({
-                    title: 'Video deleted',
-                    duration: 2000
+                const resp = await DeleteFiles([video.id])
+                videos.delete(video)
+                user.update((u) => {
+                    u.stats = resp
+                    return u
                 })
+                toastStore.success({
+                    title: 'Video deleted'
+                })
+
+                // In case the video was bulk selected
+                if ($selectedVideos.includes(video.id.toString())) {
+                    selectedVideos.update((ids) => ids.filter((id) => id !== video.id.toString()))
+                }
+
                 break
             default:
                 toastStore.warning({
@@ -73,26 +82,29 @@
     }
 
     async function confirmRename() {
-        if (!renameValue || !currentVideoId) return
         try {
             const nameWithoutExt = renameValue.replace(/\?.*$/, '').replace(/\.[^/.]+$/, '')
             const fullName = nameWithoutExt + ext
 
-            const newVid = await UpdateVideo(currentVideoId, { name: fullName })
+            const newVid = await UpdateFile(currentVideoId, { name: fullName }).catch((err) => {
+                toastStore.error({
+                    title: 'Failed to rename video',
+                    message: err.message,
+                    duration: 10000
+                })
+            })
             if (!newVid) return
 
-            toastStore.success({
-                title: 'Video renamed',
-                duration: 3000
-            })
-            const vids = [...$videos]
-            const idx = vids.findIndex((v) => v.name === oldName)
-            if (idx !== -1) {
-                vids.splice(idx, 1, newVid)
-                videos.set(vids)
-            }
+            newVid.thumbnail_url = `${PUBLIC_CDN_URL}/${newVid.file_key.replace('.mp4', '.webp')}`
+            newVid.video_url = `${PUBLIC_CDN_URL}/${newVid.file_key}`
 
-            showRenameModal = false
+            toastStore.success({
+                title: 'Video renamed'
+            })
+
+            const idx = videos.idx(video.file_key)
+            // TODO: figure out why it doesnt work
+            videos.replace(idx, newVid)
         } catch (err) {
             toastStore.error({
                 title: 'Failed to rename video',
@@ -100,40 +112,44 @@
                 duration: 10000
             })
             console.error(err)
+        } finally {
+            showRenameModal = false
         }
     }
 </script>
 
-<div class="dropdown">
-    <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown" aria-label="Options" aria-expanded="false">
-        <i class="bi bi-three-dots-vertical"></i>
+<div class="dropdown-center">
+    <button class="btn btn-sm btn-outline-secondary rounded-3" type="button" data-bs-toggle="dropdown" aria-label="Options" aria-expanded="false">
+        <i class="bi-three-dots fs-6 fw-bold"></i>
     </button>
-    <ul class="dropdown-menu">
+    <ul class="dropdown-menu animate">
         <li>
             <button class="dropdown-item" onclick={() => handleVideoAction('play')}><i class="bi bi-play me-2"></i>Play</button>
         </li>
-        <li>
-            <button class="dropdown-item" onclick={() => handleVideoAction('rename')}><i class="bi bi-pencil me-2"></i>Rename</button>
-        </li>
-        <li>
-            <button class="dropdown-item" onclick={() => handleVideoAction('edit')}><i class="bi bi-pencil me-2"></i>Edit</button>
-        </li>
-        <li>
-            <button class="dropdown-item" onclick={() => handleVideoAction('assign-labels')}><i class="bi bi-tags me-2"></i>Assign Labels</button>
-        </li>
-        <li>
-            <button class="dropdown-item" onclick={() => handleVideoAction('download')}><i class="bi bi-download me-2"></i>Download</button>
-        </li>
+        <li><hr class="dropdown-divider" /></li>
+        {#if !isProfile}
+            <li>
+                <button class="dropdown-item" onclick={() => handleVideoAction('rename')}><i class="bi bi-pencil me-2"></i>Rename</button>
+            </li>
+            <li>
+                <button class="dropdown-item" disabled onclick={() => handleVideoAction('assign-labels')}><i class="bi bi-tags me-2"></i>Tags</button>
+            </li>
+        {/if}
         <li>
             <button class="dropdown-item" onclick={() => handleVideoAction('share')}><i class="bi bi-share me-2"></i>Share</button>
         </li>
         <li>
-            <button class="dropdown-item" onclick={() => handleVideoAction('copy-link')}><i class="bi bi-link me-2"></i>Copy Link</button>
+            <button class="dropdown-item" onclick={() => handleVideoAction('download')}><i class="bi bi-download me-2"></i>Download</button>
         </li>
-        <li><hr class="dropdown-divider" /></li>
-        <li>
-            <button class="dropdown-item text-danger" onclick={() => handleVideoAction('delete')}><i class="bi bi-trash me-2"></i>Delete</button>
-        </li>
+        {#if !isProfile}
+            <li><hr class="dropdown-divider" /></li>
+            <li>
+                <button class="dropdown-item" onclick={() => handleVideoAction('edit')}><i class="bi bi-pencil me-2"></i>Edit</button>
+            </li>
+            <li>
+                <button class="dropdown-item text-danger" onclick={() => handleVideoAction('delete')}><i class="bi bi-trash me-2"></i>Delete</button>
+            </li>
+        {/if}
     </ul>
 </div>
 
@@ -146,9 +162,15 @@
                 </div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary" onclick={() => (showRenameModal = false)}>Cancel</button>
-                    <button class="btn btn-primary" onclick={confirmRename}>Rename</button>
+                    <button class="btn btn-primary" disabled={renameValue === video.name.replace('.mp4', '') || renameValue.trim() === ''} onclick={confirmRename}>Rename</button>
                 </div>
             </div>
         </div>
     </div>
 {/if}
+
+<style>
+    .animate {
+        animation: slidefade-in 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+</style>

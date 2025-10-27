@@ -8,7 +8,7 @@
 </svelte:head>
 
 <div class="min-vh-100 gradient-bg">
-    <Header page="register" />
+    <Header page="register" title="Create an Account" />
 
     <main class="container py-5">
         <div class="row justify-content-center align-items-center" style="min-height: calc(100vh - 200px);">

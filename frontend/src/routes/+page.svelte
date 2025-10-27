@@ -1,10 +1,24 @@
 <script lang="ts">
+    import { goto } from '$app/navigation'
+    import { onMount } from 'svelte'
     import '../app.css'
     import Header from '../lib/components/Header.svelte'
+
+    onMount(() => {
+        if (localStorage.getItem('optDisableRoot') === 'true') {
+            goto('/dashboard')
+        }
+    })
 </script>
 
 <svelte:head>
     <title>vid.sh - Simple video editor</title>
+    <meta property="og:title" content="Vid.sh - Suckless video editor" />
+    <meta
+        property="og:description"
+        content="Edit your videos right in your browser, store them securely in the cloud, and share them anywhere. All for free and open source. No downloads, no ads, no spying and no bullshit." />
+    <meta property="og:url" content="https://bitwise0x.dev" />
+    <meta property="theme-color" content="#5733E7" />
 </svelte:head>
 
 <div class="d-flex flex-column min-vh-100">
@@ -17,40 +31,23 @@
                 <div class="row justify-content-center">
                     <div class="col-lg-10 text-center">
                         <h1 class="display-2 fw-bold mb-4">
-                            Edit, Host & Share
-                            <span class="d-block text-gradient">Videos Easily</span>
+                            Editing Clips Shouldn't Be
+                            <span class="d-block text-gradient">Complicated</span>
                         </h1>
 
                         <p class="fs-5 text-muted-foreground mb-5 mx-auto" style="max-width: 42rem;">
-                            Edit your videos right in your browser, store them securely in the cloud, and share them anywhere. All for free and open source. No downloads, no ads, no spying and no
-                            bullshit.
+                            Imagine a world where you can simply open your browser, edit your videos, export or store them in the cloud and be done. No downloads, no ads, no spying, no bullshit.
                         </p>
 
                         <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center mb-5">
                             <a href="/editor" class="btn btn-gradient btn-lg px-4">
-                                <i class="bi bi-pencil me-2"></i>
-                                Open Editor
+                                <i class="bi-pencil me-2"></i>
+                                Editor
                             </a>
-                        </div>
-
-                        <!-- TODO: add live statistics here -->
-                        <div class="row g-4 text-center">
-                            <div class="col-6 col-md-3">
-                                <div class="fs-2 fw-bold text-primary">2GB</div>
-                                <div class="small text-muted-foreground">File Size Limit</div>
-                            </div>
-                            <div class="col-6 col-md-3">
-                                <div class="fs-2 fw-bold text-primary">10GB</div>
-                                <div class="small text-muted-foreground">Free Storage</div>
-                            </div>
-                            <div class="col-6 col-md-3">
-                                <div class="fs-2 fw-bold text-primary">Free</div>
-                                <div class="small text-muted-foreground">Video Editor</div>
-                            </div>
-                            <div class="col-6 col-md-3">
-                                <div class="fs-2 fw-bold text-primary">Free</div>
-                                <div class="small text-muted-foreground">Video Sharing anywhere</div>
-                            </div>
+                            <a href="/dashboard" class="btn btn-gradient btn-lg px-4">
+                                <i class="bi bi-grid me-2"></i>
+                                Dashboard
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -61,49 +58,51 @@
             <div class="container">
                 <div class="row justify-content-center text-center mb-5">
                     <div class="col-lg-8">
-                        <h2 class="display-4 fw-bold mb-4">Everything You Need to Quickly Edit Videos</h2>
+                        <h2 class="display-4 fw-bold mb-4 fs-1">All The Features You Need <br /><span class="text-gradient">In One Place</span></h2>
                     </div>
                 </div>
 
                 <div class="row g-4">
                     <div class="col-md-6 col-lg-4">
-                        <div class="card h-100 border-0 shadow card-hover">
+                        <div class="card h-100 border-0 shadow card-hover bg-body-tertiary">
                             <div class="card-body p-4">
                                 <div class="d-flex align-items-center justify-content-center rounded-3 mb-4" style="width: 48px; height: 48px; background-color: #f3e8ff;">
                                     <i class="bi bi-scissors text-primary fs-4"></i>
                                 </div>
                                 <h5 class="card-title">Basic Editor</h5>
-                                <p class="card-text text-muted-foreground">Simple stuff like cropping, trimming, compressing and converting your videos is done completely on-device.</p>
+                                <p class="card-text text-muted-foreground">Simple stuff like cropping, trimming, compressing and converting your videos.</p>
                             </div>
                         </div>
                     </div>
 
                     <div class="col-md-6 col-lg-4">
-                        <div class="card h-100 border-0 shadow card-hover">
+                        <div class="card h-100 border-0 shadow card-hover bg-body-tertiary">
                             <div class="card-body p-4">
                                 <div class="d-flex align-items-center justify-content-center rounded-3 mb-4" style="width: 48px; height: 48px; background-color: #dcfce7;">
                                     <i class="bi bi-cloud text-success fs-4"></i>
                                 </div>
                                 <h5 class="card-title">Cloud Hosting</h5>
-                                <p class="card-text text-muted-foreground">Registered users can host their videos in the cloud to share them easily on platforms with file size limits.</p>
+                                <p class="card-text text-muted-foreground">
+                                    Registered users can host their videos in the cloud to share them easily on other platforms to bypass their file size limits.
+                                </p>
                             </div>
                         </div>
                     </div>
 
                     <div class="col-md-6 col-lg-4">
-                        <div class="card h-100 border-0 shadow card-hover">
+                        <div class="card h-100 border-0 shadow card-hover bg-body-tertiary">
                             <div class="card-body p-4">
                                 <div class="d-flex align-items-center justify-content-center rounded-3 mb-4" style="width: 48px; height: 48px; background-color: #fed7aa;">
                                     <i class="bi bi-share text-warning fs-4"></i>
                                 </div>
                                 <h5 class="card-title">Easy Sharing</h5>
-                                <p class="card-text text-muted-foreground">Sharing your cloud-hosted videos is as easy as clicking a button and embedding the video anywhere you want.</p>
+                                <p class="card-text text-muted-foreground">Sharing your cloud-hosted videos is as easy as clicking a button and sharing it anywhere you want.</p>
                             </div>
                         </div>
                     </div>
 
                     <div class="col-md-6 col-lg-4">
-                        <div class="card h-100 border-0 shadow card-hover">
+                        <div class="card h-100 border-0 shadow card-hover bg-body-tertiary">
                             <div class="card-body p-4">
                                 <div class="d-flex align-items-center justify-content-center rounded-3 mb-4" style="width: 48px; height: 48px; background-color: #fecaca;">
                                     <i class="bi bi-shield-check text-danger fs-4"></i>
@@ -115,19 +114,48 @@
                             </div>
                         </div>
                     </div>
+
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card h-100 border-0 shadow card-hover bg-body-tertiary">
+                            <div class="card-body p-4">
+                                <div class="d-flex align-items-center justify-content-center rounded-3 mb-4" style="width: 48px; height: 48px; background-color: #d8b4fe;">
+                                    <i class="bi-shield text-purple fs-4"></i>
+                                </div>
+                                <h5 class="card-title">Privacy Focused</h5>
+                                <p class="card-text text-muted-foreground">
+                                    We take your privacy seriously. After processing your videos nothing is stored on the server permanently. There's absolutely no telemetry or other spying involved.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card h-100 border-0 shadow card-hover bg-body-tertiary">
+                            <div class="card-body p-4">
+                                <div class="d-flex align-items-center justify-content-center rounded-3 mb-4" style="width: 48px; height: 48px; background-color: #bbf7d0;">
+                                    <i class="bi bi-wallet2 text-success fs-4"></i>
+                                </div>
+                                <h5 class="card-title">Free to Use</h5>
+                                <p class="card-text text-muted-foreground">
+                                    Vid.sh is completely free to use. There are no hidden charges and no premium plans. Just open the editor and start editing your videos right away. Although
+                                    donations are appreciated to keep the project running.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
     </main>
 
-    <footer class="border-top bg-light py-5">
+    <footer class="border-top py-5">
         <div class="container">
             <div class="row g-4">
                 <div class="col-md-3 col-sm-4">
-                    <h6 class="fw-semibold mb-3">Product</h6>
+                    <h6 class="fw-semibold mb-3">Vid.sh</h6>
                     <ul class="list-unstyled">
                         <li class="mb-2">
-                            <a href="/video-editor" class="text-decoration-none text-muted-foreground">Video Editor</a>
+                            <a href="/editor" class="text-decoration-none text-muted-foreground">Editor</a>
                         </li>
                         <li class="mb-2">
                             <a href="/dashboard" class="text-decoration-none text-muted-foreground">Dashboard</a>
@@ -136,25 +164,22 @@
                             <a href="/analytics" class="text-decoration-none text-muted-foreground">Analytics</a>
                         </li>
                         <li class="mb-2">
-                            <a href="/api" class="text-decoration-none text-muted-foreground">API</a>
+                            <a href="https://github.com/bitwise74/vid.sh" target="_blank" class="text-decoration-none text-muted-foreground">Source Code</a>
                         </li>
                     </ul>
                 </div>
 
                 <div class="col-md-3 col-sm-4">
-                    <h6 class="fw-semibold mb-3">Company</h6>
+                    <h6 class="fw-semibold mb-3">About The Creator</h6>
                     <ul class="list-unstyled">
                         <li class="mb-2">
-                            <a href="/about" class="text-decoration-none text-muted-foreground">About</a>
+                            <a href="https://bitwise74.github.io/bitwise74/" target="_blank" class="text-decoration-none text-muted-foreground">Portfolio</a>
                         </li>
                         <li class="mb-2">
-                            <a href="/blog" class="text-decoration-none text-muted-foreground">Blog</a>
+                            <a href="https://github.com/bitwise74" target="_blank" class="text-decoration-none text-muted-foreground">My GitHub</a>
                         </li>
                         <li class="mb-2">
-                            <a href="/careers" class="text-decoration-none text-muted-foreground">Careers</a>
-                        </li>
-                        <li class="mb-2">
-                            <a href="/contact" class="text-decoration-none text-muted-foreground">Contact</a>
+                            <a href="https://github.com/sponsors/bitwise74" target="_blank" class="text-decoration-none text-muted-foreground">Support Me</a>
                         </li>
                     </ul>
                 </div>
@@ -163,16 +188,10 @@
                     <h6 class="fw-semibold mb-3">Support</h6>
                     <ul class="list-unstyled">
                         <li class="mb-2">
-                            <a href="/help-center" class="text-decoration-none text-muted-foreground">Help Center</a>
+                            <a href="/help" class="text-decoration-none text-muted-foreground">Help</a>
                         </li>
                         <li class="mb-2">
-                            <a href="/documentation" class="text-decoration-none text-muted-foreground">Documentation</a>
-                        </li>
-                        <li class="mb-2">
-                            <a href="/community" class="text-decoration-none text-muted-foreground">Community</a>
-                        </li>
-                        <li class="mb-2">
-                            <a href="/status" class="text-decoration-none text-muted-foreground">Status</a>
+                            <a href="https://discord.gg/9VyyCkMSFP" target="_blank" class="text-decoration-none text-muted-foreground">Discord</a>
                         </li>
                     </ul>
                 </div>
@@ -188,3 +207,9 @@
         </div>
     </footer>
 </div>
+
+<style>
+    .text-purple {
+        color: #a855f7;
+    }
+</style>

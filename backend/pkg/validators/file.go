@@ -110,7 +110,7 @@ func sanitizeFileName(n string) string {
 	n = filepath.Base(n)
 	n = strings.TrimSpace(n)
 
-	re := regexp.MustCompile(`[^a-zA-Z0-9._-]+`)
+	re := regexp.MustCompile(`[^\p{L}0-9._-]+`)
 	n = re.ReplaceAllString(n, "_")
 
 	if n == "" || n == "." || n == ".." {
