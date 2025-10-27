@@ -3,21 +3,8 @@ import { defineConfig } from 'vite'
 
 export default defineConfig({
     build: {
-        sourcemap: false,
-        minify: 'terser',
-        terserOptions: {
-            compress: {
-                drop_console: true,
-                drop_debugger: true
-            }
-        }
+        sourcemap: true,
     },
-//     optimizeDeps: {
-//         exclude: ['svelte-turnstile', 'svelte-range-slider-pips']
-//     },
-//     ssr: {
-//         noExternal: ['svelte-turnstile', 'svelte-range-slider-pips']
-//     },
     plugins: [sveltekit()],
     resolve: {
         alias: {

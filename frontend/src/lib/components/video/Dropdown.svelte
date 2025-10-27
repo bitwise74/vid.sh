@@ -1,8 +1,8 @@
 <script lang="ts">
     import { PUBLIC_BASE_URL, PUBLIC_CDN_URL } from '$env/static/public'
-    import { DeleteFiles, UpdateFile, type Video } from '$lib/api-v2/Files'
+    import { DeleteFiles, UpdateFile, type Video } from '$lib/api/Files'
+    import { selectedVideos } from '$lib/stores/appControl'
     import { user } from '$lib/stores/AppVars'
-    import { selectedVideos } from '$lib/stores/Dashboard'
     import { currentVideoURL, videos } from '$lib/stores/VideoStore'
     import { toastStore } from '../../stores/ToastStore'
 
@@ -119,7 +119,7 @@
 </script>
 
 <div class="dropdown-center">
-    <button class="btn btn-sm btn-outline-secondary rounded-2" type="button" data-bs-toggle="dropdown" aria-label="Options" aria-expanded="false">
+    <button class="btn btn-sm btn-outline-secondary rounded-3" type="button" data-bs-toggle="dropdown" aria-label="Options" aria-expanded="false">
         <i class="bi-three-dots fs-6 fw-bold"></i>
     </button>
     <ul class="dropdown-menu animate">
@@ -172,16 +172,5 @@
 <style>
     .animate {
         animation: slidefade-in 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    @keyframes slidefade-in {
-        from {
-            margin-top: -4px;
-            opacity: 0;
-        }
-        to {
-            margin-top: 0px;
-            opacity: 1;
-        }
     }
 </style>

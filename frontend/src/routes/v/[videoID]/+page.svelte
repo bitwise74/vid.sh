@@ -1,6 +1,6 @@
 <script lang="ts">
     import { PUBLIC_BASE_URL, PUBLIC_CDN_URL } from '$env/static/public'
-    import type { Video } from '$lib/api-v2/Files'
+    import type { Video } from '$lib/api/Files'
     import type { PageProps } from './$types'
 
     type FetchedVideo = {

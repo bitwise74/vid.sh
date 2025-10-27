@@ -1,6 +1,6 @@
-import { DeleteFiles } from '$lib/api-v2/Files'
+import { DeleteFiles } from '$lib/api/Files'
+import { selectedVideos } from '$lib/stores/appControl'
 import { user } from '$lib/stores/AppVars'
-import { selectedVideos } from '$lib/stores/Dashboard'
 import { toastStore } from '$lib/stores/ToastStore'
 import { videos } from '$lib/stores/VideoStore'
 import { derived } from 'svelte/store'
@@ -36,7 +36,7 @@ export const videoSelectionToast = derived(selectedVideos, ($selectedVideos) => 
                             message: `${$selectedVideos.length} video${$selectedVideos.length > 1 ? 's' : ''} deleted successfully`
                         })
                         for (const id of $selectedVideos) {
-                            videos.delete(videos.get(id))
+                            videos.delete(videos.get(id)!)
                         }
                         selectedVideos.set([])
                     } catch (error) {

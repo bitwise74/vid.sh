@@ -2,7 +2,7 @@
     import { goto } from '$app/navigation'
     import '../../app.css'
     import { toastStore } from '../stores/ToastStore'
-    import { Register } from '$lib/api-v2/Auth'
+    import { Register } from '$lib/api/Auth'
 
     let showPassword = $state(false)
     let showConfirmPassword = $state(false)

@@ -1,7 +1,6 @@
 <script lang="ts">
-    import { SearchFiles } from '$lib/api-v2/Files'
-    import { perPage } from '$lib/stores/FilterOpts'
-    import { view } from '$lib/stores/UserPreferences'
+    import { SearchFiles } from '$lib/api/Files'
+    import { dashboardView, perPage } from '$lib/stores/appControl'
     import { videos } from '$lib/stores/VideoStore'
     import { onDestroy } from 'svelte'
 
@@ -25,9 +24,9 @@
         }, 300)
     }
 
-    function toggleView(val: string) {
+    function toggleView(val: 'list' | 'grid') {
         localStorage.setItem('view', val)
-        view.set(val)
+        dashboardView.set(val)
     }
 
     onDestroy(() => {
@@ -40,21 +39,19 @@
             <span class="input-group-text bg-opacity-75">
                 <i class="bi-search"></i>
             </span>
-            <input type="text" class="form-control" placeholder="Search videos..." oninput={handleInput} />
-            <button disabled class="input-group-text dropdown-toggle bg-opacity-75" aria-label="filters" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+            <input type="text" class="form-control rounded-end-3" placeholder="Search videos..." oninput={handleInput} />
+            <!-- <button disabled class="input-group-text dropdown-toggle bg-opacity-75" aria-label="filters" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
                 <i class="bi-funnel"></i>
-            </button>
+            </button> -->
             <div class="dropdown-center">
                 <ul class="dropdown-menu p-3 animate" style="min-width: 600px; max-width: 800px;">
                     <li>
                         <div class="row g-3">
-                            <!-- Filter By -->
                             <div class="col-md-4">
                                 <label class="form-label small text-muted" for="filter-by">Filter by</label>
                                 <select class="form-select" id="filter-by"> </select>
                             </div>
 
-                            <!-- Sort By -->
                             <div class="col-md-4">
                                 <label class="form-label small text-muted" for="sort-by">Sort by</label>
                                 <select class="form-select" id="sort-by">
@@ -98,7 +95,7 @@
             </div>
         </div>
 
-        <div class="input-group-text ms-3 bg-opacity-75">
+        <div class="input-group-text ms-3 bg-opacity-75 rounded-3">
             <button
                 type="button"
                 class="btn bg-transparent border-0 m-0 p-1"

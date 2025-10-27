@@ -1,6 +1,6 @@
 <script lang="ts">
     import { PUBLIC_BASE_URL, PUBLIC_CDN_URL } from '$env/static/public'
-    import { UpdateUser } from '$lib/api-v2/User'
+    import { UpdateUser } from '$lib/api/User'
     import { user } from '$lib/stores/AppVars'
     import { toastStore } from '$lib/stores/ToastStore'
 

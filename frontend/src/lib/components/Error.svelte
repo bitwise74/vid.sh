@@ -24,14 +24,14 @@
     <div class="card-body p-4">
         {#each buttons as btn}
             {#if btn.href}
-                <a href={btn.href} class="btn btn-sm shadow-bottom rounded-2 btn-lg p-2 px-3 {btn.class}">
+                <a href={btn.href} class="btn btn-sm shadow-bottom rounded-3 btn-lg p-2 px-3 {btn.class}">
                     {#if btn.icon}
                         <i class="{btn.icon} me-2"></i>
                     {/if}
                     {btn.text}
                 </a>
             {:else}
-                <button class="btn btn-sm shadow-bottom rounded-2 btn-lg p-2 px-3 {btn.class}" onclick={() => history.back()}>
+                <button class="btn btn-sm shadow-bottom rounded-3 btn-lg p-2 px-3 {btn.class}" onclick={() => history.back()}>
                     {#if btn.icon}
                         <i class="{btn.icon} me-2"></i>
                     {/if}

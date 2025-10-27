@@ -1,4 +1,6 @@
 <script lang="ts">
+    import RangeSlider from 'svelte-range-slider-pips'
+
     const set = (key: string, e: Event, type = 'text') => {
         let value: any
 
@@ -28,7 +30,7 @@
     <div class="row mb-2">
         <div class="col-6">
             <label for="optPreferredTheme" class="form-label fw-semibold">Preferred theme</label>
-            <select class="form-select mb-1" aria-label="Preferred theme" onchange={(e) => set('optPreferredTheme', e, 'bool')} value={getSetting('optPreferredTheme')}>
+            <select class="form-select mb-1" aria-label="Preferred theme" onchange={(e) => set('optPreferredTheme', e)} value={getSetting('optPreferredTheme')}>
                 <option value="light">Light</option>
                 <option value="dark">Dark</option>
                 <option value="auto">System</option>
@@ -80,6 +82,28 @@
             <p class="small text-muted">
                 If checked and both the username and profile picture are set videos shared via URLs will have a pretty rich embed around them (check image if you don't know what that means)
             </p>
+        </div>
+    </div>
+
+    <hr />
+    <h4>Visuals</h4>
+    <div class="row mb-2 user-select-none">
+        <div class="col-6">
+            <label for="animation_speed" class="form-label fw-semibold">Animation Speed</label>
+            <RangeSlider
+                min={0}
+                max={2}
+                step={0.5}
+                pips
+                darkmode={false}
+                all={'label'}
+                value={parseInt(getSetting('optAnimationSpeed') || '1')}
+                springValues={{ stiffness: 0.25, damping: 0.75 }}
+                on:stop={(e) => {
+                    const sliderValue = e.detail.value as number
+                    localStorage.setItem('optAnimationSpeed', String(sliderValue))
+                }} />
+            <p class="small text-muted">Adjust the speed of animations throughout the app (1.0 is normal speed, 0 disables animations)</p>
         </div>
     </div>
 </div>

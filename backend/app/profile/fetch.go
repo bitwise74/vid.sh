@@ -2,11 +2,8 @@ package profile
 
 import (
 	"bitwise74/video-api/internal/model"
-	"bitwise74/video-api/internal/redis"
 	"bitwise74/video-api/internal/types"
-	"context"
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -24,6 +21,8 @@ type partialVideo struct {
 	OriginalName string  `json:"name"`
 	Duration     float64 `json:"duration"`
 	CreatedAt    int64   `json:"created_at"`
+	Size         int64   `json:"size"`
+	Format       string  `json:"format"`
 }
 
 type ProfileResponse struct {
@@ -44,10 +43,6 @@ func Fetch(c *gin.Context, d *types.Dependencies) {
 		return
 	}
 
-	if redis.CheckCache("profile:"+username, c) {
-		return
-	}
-
 	var prof partialProfile
 	err := d.DB.Gorm.
 		Model(model.User{}).
@@ -56,6 +51,16 @@ func Fetch(c *gin.Context, d *types.Dependencies) {
 		First(&prof).
 		Error
 	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":     "Could not fetch profile",
+			"requestID": requestID,
+		})
+
+		zap.L().Error("Failed to fetch user profile", zap.String("requestID", requestID), zap.Error(err))
+		return
+	}
+
+	if !prof.PublicProfileEnabled {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error":     "Profile not found",
 			"requestID": requestID,
@@ -65,21 +70,21 @@ func Fetch(c *gin.Context, d *types.Dependencies) {
 
 	var videos []partialVideo
 
-	if prof.PublicProfileEnabled {
-		err = d.DB.Gorm.
-			Model(model.File{}).
-			Where("private = ? AND user_id = ?", false, prof.ID).
-			Select("file_key", "original_name", "duration", "created_at").
-			Limit(25).
-			Find(&videos).
-			Error
-		if err != nil {
-			c.JSON(http.StatusNotFound, gin.H{
-				"error":     "Profile not found",
-				"requestID": requestID,
-			})
-			return
-		}
+	err = d.DB.Gorm.
+		Model(model.File{}).
+		Where("private = ? AND user_id = ?", false, prof.ID).
+		Select("file_key", "original_name", "duration", "created_at", "size", "format").
+		Limit(25).
+		Find(&videos).
+		Error
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":     "Internal server error",
+			"requestID": requestID,
+		})
+
+		zap.L().Error("Failed to fetch profile videos", zap.String("requestID", requestID), zap.Error(err))
+		return
 	}
 
 	data := ProfileResponse{
@@ -90,8 +95,4 @@ func Fetch(c *gin.Context, d *types.Dependencies) {
 	}
 
 	c.JSON(http.StatusOK, data)
-
-	if err := redis.Rdb.Set(context.Background(), "profile:"+username, data, time.Minute*5).Err(); err != nil {
-		zap.L().Error("Failed to set cache for profile fetch", zap.Error(err))
-	}
 }

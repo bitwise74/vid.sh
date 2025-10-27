@@ -1,5 +1,5 @@
 import { PUBLIC_BASE_URL, PUBLIC_CDN_URL } from '$env/static/public'
-import type { Video } from '$lib/api-v2/Files'
+import type { Video } from '$lib/api/Files'
 import type { PageLoad } from '../../settings/$types'
 
 export type ProfileVideo = {
@@ -9,21 +9,31 @@ export type ProfileVideo = {
     created_at: number
     thumbnail_url: string
     video_url: string
+    size: number
 }
 
 export type ProfileData = {
     avatarHash: string
-    public: boolean
     username: string
     videos: ProfileVideo[]
+    found: boolean
 }
 
-export const load: PageLoad = async ({ params, fetch, url }) => {
+export type ProfileResponse = {
+        found: boolean
+}
+
+export const load: PageLoad = async ({ params, fetch }) => {
     const username = params['username']
-    if (username === 'placeholder.svg') return {}
+    if (username === 'placeholder.svg') return { found: false };
+
     const res = await fetch(`${PUBLIC_BASE_URL}/api/profile/${username}`)
+    if (res.status === 404) {
+        return { found: false }
+    }
 
     const body = await res.json()
+    body.found = true
 
     if (body.videos) {
         for (const vid of body.videos as Video[]) {

@@ -4,6 +4,7 @@
     "": {
       "name": "vidsh",
       "dependencies": {
+        "@neodrag/svelte": "^2.3.3",
         "bootstrap": "5.3.8",
         "bootstrap-icons": "1.13.1",
         "cropperjs": "^2.1.0",
@@ -143,6 +144,8 @@
     "@jridgewell/trace-mapping": ["@jridgewell/trace-mapping@0.3.29", "", { "dependencies": { "@jridgewell/resolve-uri": "^3.1.0", "@jridgewell/sourcemap-codec": "^1.4.14" } }, "sha512-uw6guiW/gcAGPDhLmd77/6lW8QLeiV5RUTsAX46Db6oLhGaVj4lhnPwb184s1bkc8kdVg/+h988dro8GRDpmYQ=="],
 
     "@neoconfetti/svelte": ["@neoconfetti/svelte@2.2.2", "", { "peerDependencies": { "svelte": "^3.0.0 || ^4.0.0 || ^5.0.0" } }, "sha512-E7xCFVEEm5Ctnj2udTJy1b9oaTvjz1zi1mYdEtE8rB5BVwq6kHisosDS+zdWN5PMfEMjtbsOV9Cl6tsNSAD1sA=="],
+
+    "@neodrag/svelte": ["@neodrag/svelte@2.3.3", "", { "peerDependencies": { "svelte": "^3.0.0 || ^4.0.0 || ^5.0.0" } }, "sha512-avXzhrilsBsnMFljhVAQ7h+6hbSIrvRCJ61GCiGbGISkC1QOhjDCNvPZo2+7KVwiYrnUBx4NRH0kTIqrcxv9Lg=="],
 
     "@nodelib/fs.scandir": ["@nodelib/fs.scandir@2.1.5", "", { "dependencies": { "@nodelib/fs.stat": "2.0.5", "run-parallel": "^1.1.9" } }, "sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g=="],
 

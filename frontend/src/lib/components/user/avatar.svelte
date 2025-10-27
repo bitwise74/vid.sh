@@ -1,8 +1,8 @@
 <script lang="ts">
     import { PUBLIC_CDN_URL } from '$env/static/public'
-    import { Logout } from '$lib/api-v2/Auth'
+    import { Logout } from '$lib/api/Auth'
     import { user } from '$lib/stores/AppVars'
-    import { UploadFileButton } from '$lib/utils/Upload'
+    import { UploadFileButton } from '$lib/utils/upload'
 </script>
 <div class="dropdown">
     <button class="btn d-flex align-items-center text-decoration-none border-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -36,7 +36,7 @@
         </li>
         <li>
             <a class="dropdown-item" href="/dashboard">
-                <i class="bi-view-stacked me-2"></i>Dashboard
+                <i class="bi-grid me-2"></i>Dashboard
             </a>
         </li>
         <li><hr class="dropdown-divider" /></li>
@@ -54,18 +54,5 @@
 <style>
     .animate {
         animation: slidefade-in 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    @keyframes slidefade-in {
-        from {
-            scale: 0.98;
-            margin-top: -4px;
-            opacity: 0;
-        }
-        to {
-            scale: 1;
-            margin-top: 0px;
-            opacity: 1;
-        }
     }
 </style>

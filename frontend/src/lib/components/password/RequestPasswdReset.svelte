@@ -1,6 +1,6 @@
 <script lang="ts">
-    import { RequestPasswordReset } from '$lib/api-v2/Auth'
-    import { loadedInitialData } from '$lib/stores/AppVars'
+    import { RequestPasswordReset } from '$lib/api/Auth'
+    import { shouldRefetch } from '$lib/stores/appControl'
     import { toastStore } from '../../stores/ToastStore'
 
     type FormState = 'waiting' | 'submitting' | 'success' | 'error'
@@ -22,7 +22,7 @@
             }
 
             await RequestPasswordReset(email)
-            loadedInitialData.set(false)
+            shouldRefetch.set(true)
             formState = 'success'
 
             toastStore.success({

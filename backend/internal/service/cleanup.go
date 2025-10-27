@@ -14,6 +14,8 @@ func StaleTokenCleanup(t time.Duration, d *gorm.DB) {
 	ticker := time.NewTicker(t)
 
 	go func() {
+		defer ticker.Stop()
+
 		for range ticker.C {
 			result := d.Model(model.Token{}).
 				Where("expires_at < ?", time.Now()).
@@ -36,6 +38,8 @@ func UnverifiedUserCleanup(t time.Duration, d *gorm.DB) {
 	ticker := time.NewTicker(t)
 
 	go func() {
+		defer ticker.Stop()
+
 		for range ticker.C {
 			result := d.Model(model.User{}).
 				Where("expires_at < ? AND verified = ?", time.Now(), false).

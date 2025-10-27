@@ -1,4 +1,4 @@
-import { PUBLIC_BASE_URL } from '$env/static/public'
+import { PUBLIC_BASE_URL, PUBLIC_CDN_URL } from '$env/static/public'
 import { FFmpegMonitorProgress, StartFFmpegJob } from './FFmpeg'
 import type { UserStats } from './User'
 
@@ -147,7 +147,10 @@ export async function UploadFile(f: File): Promise<Video> {
  * @param o Editing options
  */
 export async function UpdateFile(id: string, o: VideoUpdateOpts): Promise<Video> {
-    console.log(o)
+    if (o.processing_options) {
+        const jobID = await StartFFmpegJob()
+        FFmpegMonitorProgress(jobID)
+    }
 
     const req = await fetch(`${PUBLIC_BASE_URL}/api/files/${id}`, {
         method: 'PATCH',
@@ -189,12 +192,12 @@ export async function DeleteFiles(ids: Array<string>): Promise<UserStats> {
 
 /**
  * Searches for videos matching a search query
- * @param q
+ * @param q Search options
  */
 export async function SearchFiles(o: SearchOpts): Promise<Array<Video>> {
     const req = await fetch(`${PUBLIC_BASE_URL}/api/files/search`, {
         credentials: 'include',
-        method: 'DELETE',
+        method: 'POST',
         body: JSON.stringify(o)
     })
     const body = await req.json()
@@ -204,6 +207,10 @@ export async function SearchFiles(o: SearchOpts): Promise<Array<Video>> {
         throw new Error(body.error, { cause: req })
     }
 
+    for (const video of body) {
+        video.thumbnail_url = `${PUBLIC_CDN_URL}/${video.file_key.replace('.mp4', '.webp')}`
+        video.video_url = `${PUBLIC_CDN_URL}/${video.file_key}`
+    }
     return body
 }
 

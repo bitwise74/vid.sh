@@ -1,7 +1,7 @@
 <script lang="ts">
     import { page } from '$app/state'
     import { PUBLIC_CDN_URL } from '$env/static/public'
-    import { CheckFileOwnership, FetchFile } from '$lib/api-v2/Files'
+    import { CheckFileOwnership, FetchFile } from '$lib/api/Files'
     import ActionButtons from '$lib/components/editor/ActionButtons.svelte'
     import Compress from '$lib/components/editor/tabs/Compress.svelte'
     import Crop from '$lib/components/editor/tabs/Crop.svelte'

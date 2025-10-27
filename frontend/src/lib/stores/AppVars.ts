@@ -1,4 +1,4 @@
-import type { User } from '$lib/api-v2/User'
+import type { User } from '$lib/api/User'
 import { writable } from 'svelte/store'
 
 type JobStats = {
@@ -15,6 +15,3 @@ export const jobStats = writable<JobStats>({
 })
 
 export const user = writable<User>()
-
-// Data loading controller. If set to true anywhere, layout will refetch user data and set the data store
-export const shouldRefetch = writable(true)

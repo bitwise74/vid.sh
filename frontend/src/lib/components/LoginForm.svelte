@@ -1,7 +1,7 @@
 <script lang="ts">
     import { goto } from '$app/navigation'
-    import { Login } from '$lib/api-v2/Auth'
-    import { shouldRefetch } from '$lib/stores/AppVars'
+    import { Login } from '$lib/api/Auth'
+    import { shouldRefetch } from '$lib/stores/appControl'
     import { writable } from 'svelte/store'
     import { toastStore } from '../stores/ToastStore'
 

@@ -1,15 +1,14 @@
 <script lang="ts">
     import { goto } from '$app/navigation'
     import { PUBLIC_CDN_URL } from '$env/static/public'
-    import { GetUser } from '$lib/api-v2/User'
+    import { GetUser } from '$lib/api/User'
     import ToastContainer from '$lib/components/toast/ToastContainer.svelte'
-    import { isLoggedIn, loadedVideosCount, shouldRefetch, user } from '$lib/stores/AppVars'
+    import { isLoggedIn, loadedVideosCount, user } from '$lib/stores/AppVars'
     import { toastStore } from '$lib/stores/ToastStore'
-    import { view } from '$lib/stores/UserPreferences'
+    import { dashboardView, shouldRefetch } from '$lib/stores/appControl'
     import { videos } from '$lib/stores/VideoStore'
-    import { getCookie } from '$lib/utils/Cookies'
-    import { onMount } from 'svelte'
     import '../app.css'
+    import { getCookie } from '$lib/utils/cookies'
 
     const { children } = $props()
     let isLoading = $state(true)
@@ -33,7 +32,7 @@
                 videos.set(vids)
                 isLoggedIn.set(true)
                 loadedVideosCount.set(data.videos?.length ?? 0)
-                view.set(localStorage.getItem('view') || 'list')
+                dashboardView.set(localStorage.getItem('view') || 'list' as any)
             } else {
                 toastStore.error({
                     title: 'Session expired',

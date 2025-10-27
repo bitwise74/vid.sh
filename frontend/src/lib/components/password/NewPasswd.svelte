@@ -1,6 +1,6 @@
 <script lang="ts">
-    import { ResetPassword } from '$lib/api-v2/Auth'
-    import { loadedInitialData } from '$lib/stores/AppVars'
+    import { ResetPassword } from '$lib/api/Auth'
+    import { shouldRefetch } from '$lib/stores/appControl'
     import { toastStore } from '$lib/stores/ToastStore'
 
     type Props = {
@@ -10,10 +10,6 @@
     let newPassword = $state('')
     let confirmPassword = $state('')
     let isSubmitting = $state(false)
-
-    $effect(() => {
-        console.log(newPassword, confirmPassword)
-    })
 
     let { token }: Props = $props()
 
@@ -36,7 +32,7 @@
 
         try {
             await ResetPassword(token, newPassword)
-            loadedInitialData.set(false)
+            shouldRefetch.set(true)
 
             toastStore.success({
                 title: 'Password reset successful',

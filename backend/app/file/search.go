@@ -22,7 +22,7 @@ func Search(c *gin.Context, d *types.Dependencies) {
 	userID := c.MustGet("userID").(string)
 
 	var data SearchRequestBody
-	if err := c.Bind(&data); err != nil {
+	if err := c.ShouldBindJSON(&data); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error":     "Invalid JSON body",
 			"requestID": requestID,

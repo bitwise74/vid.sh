@@ -1,9 +1,9 @@
 <script lang="ts">
     import { trimEnd, trimStart, videoDuration, videoSource } from '$lib/stores/EditOptions'
     import { currentTime } from '$lib/stores/VideoStore'
-    import { FormatDuration } from '$lib/utils/Format'
     import RangeSlider from 'svelte-range-slider-pips'
     import CropBox from '../editor/CropBox.svelte'
+    import { FormatDuration } from '$lib/utils/format'
 
     let {
         onTimeUpdate

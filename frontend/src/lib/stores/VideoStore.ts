@@ -1,4 +1,4 @@
-import type { Video } from '$lib/api-v2/Files'
+import type { Video } from '$lib/api/Files'
 import { writable } from 'svelte/store'
 
 function uniqueArrayStore<T>(key = 'id') {
@@ -42,7 +42,7 @@ function uniqueArrayStore<T>(key = 'id') {
                     return arr
                 }
             }),
-        get: (id: string) => {
+        get: (id: string): T | null => {
             let foundItem = null
             update((arr) => {
                 const index = arr.findIndex((x) => x[key] === id)

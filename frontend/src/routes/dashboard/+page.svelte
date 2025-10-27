@@ -1,6 +1,6 @@
 <script lang="ts">
     import { PUBLIC_CDN_URL } from '$env/static/public'
-    import { FetchFiles, UploadFile, type Video } from '$lib/api-v2/Files'
+    import { FetchFiles, UploadFile, type Video } from '$lib/api/Files'
     import VideoList from '$lib/components/dashboard/List.svelte'
     import Search from '$lib/components/dashboard/Search.svelte'
     import StatBlocks from '$lib/components/dashboard/StatBlocks.svelte'
@@ -200,7 +200,7 @@
         ondragend={hideOverlay}
         ondragleave={hideOverlay}
         ondrop={handleDrop}>
-        <div class="border-3 border-light rounded-4 border border-dashed p-5 text-center">
+        <div class="border-3 border-light rounded-3 border border-dashed p-5 text-center">
             <i class="bi bi-cloud-upload text-light display-1 mb-3"></i>
             <h3 class="text-light fw-semibold">Drop files to upload</h3>
         </div>

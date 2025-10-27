@@ -1,11 +1,12 @@
 <script lang="ts">
     import { goto } from '$app/navigation'
-    import { ExportVideo, UpdateFile, UploadFile } from '$lib/api-v2/Files'
-    import { isLoggedIn, jobStats, shouldRefetch } from '$lib/stores/AppVars'
+    import { ExportVideo, UpdateFile, UploadFile } from '$lib/api/Files'
+    import { shouldRefetch } from '$lib/stores/appControl'
+    import { isLoggedIn, jobStats } from '$lib/stores/AppVars'
     import { isExporting, isSaving, selectedFile, settingsUnchanged, videoName } from '$lib/stores/EditOptions'
-    import { AutoCopy } from '$lib/utils/AutoCopy'
-    import { DownloadBlob } from '$lib/utils/DownloadBlob'
-    import { GetExportCropCoords } from '$lib/utils/GetExportCropCoords'
+    import { AutoCopy } from '$lib/utils/audoCopy'
+    import { DownloadBlob } from '$lib/utils/downloadBlob'
+    import { GetExportCropCoords } from '$lib/utils/getExportCropCoordinates'
     import { toastStore } from '../../stores/ToastStore'
     import { losslessExport, targetSize, trimEnd, trimStart } from './../../stores/EditOptions'
 

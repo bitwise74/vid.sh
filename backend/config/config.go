@@ -149,8 +149,6 @@ func Setup() error {
 			zap.L().Warn("No GPU detected. If it exists ffmpeg won't be able to use it to encode/decode")
 		}
 
-		fmt.Println(gpu)
-
 		switch gpu {
 		case "nvidia":
 			os.Setenv("FFMPEG_HWACCEL", "cuda")

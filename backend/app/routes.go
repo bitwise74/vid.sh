@@ -107,14 +107,6 @@ func NewRouter() (*gin.Engine, error) {
 
 		// POST /api/users/reset-password	-> Resets a user's password
 		u.POST("/reset-password", func(c *gin.Context) { user.ResetPassword(c, d) })
-
-		u.OPTIONS("/login", func(c *gin.Context) {
-			c.Header("Access-Control-Allow-Origin", c.GetHeader("Origin"))
-			c.Header("Access-Control-Allow-Methods", "POST, OPTIONS")
-			c.Header("Access-Control-Allow-Headers", "Content-Type, Authorization, TurnstileToken")
-			c.Header("Access-Control-Allow-Credentials", "true")
-			c.Status(200)
-		})
 	}
 
 	ma := m.Group("/mail")
@@ -146,8 +138,8 @@ func NewRouter() (*gin.Engine, error) {
 		// DELETE /api/files/		-> Deletes multiple files
 		ff.DELETE("", jwt, func(c *gin.Context) { file.Delete(c, d) })
 
-		// GET /api/files/search	-> Searches for files saved in the database
-		ff.GET("/search", jwt, func(c *gin.Context) { file.Search(c, d) })
+		// POST /api/files/search	-> Searches for files saved in the database
+		ff.POST("/search", jwt, func(c *gin.Context) { file.Search(c, d) })
 	}
 
 	f := m.Group("/ffmpeg", jwt)
@@ -184,8 +176,8 @@ func NewRouter() (*gin.Engine, error) {
 	// Start FFmpeg job queue
 	d.JobQueue.StartWorkerPool()
 
-	// Check for useless tokens every day because they expire rarely
-	go service.StaleTokenCleanup(time.Minute, db.Gorm)
+	// Check for useless tokens every week because they expire rarely
+	go service.StaleTokenCleanup(time.Hour*24*7, db.Gorm)
 
 	// Check for expired accounts rarely because they have a week to verify
 	go service.UnverifiedUserCleanup(time.Hour*24*7, db.Gorm)

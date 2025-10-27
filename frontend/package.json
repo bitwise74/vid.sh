@@ -32,6 +32,7 @@
         "vite": "7.1.11"
     },
     "dependencies": {
+        "@neodrag/svelte": "^2.3.3",
         "bootstrap": "5.3.8",
         "bootstrap-icons": "1.13.1",
         "cropperjs": "^2.1.0",

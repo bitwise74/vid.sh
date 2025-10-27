@@ -52,8 +52,6 @@ func FetchBulk(c *gin.Context, d *types.Dependencies) {
 		return
 	}
 
-	fmt.Println(data.Limit)
-
 	if !slices.Contains(validResultOpts, data.Limit) {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error":     "Invalid limit option",

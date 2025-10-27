@@ -11,7 +11,7 @@ type Settings = {
     change(key: string, val: any): void
 }
 
-type DeepPartal<T> = { [P in keyof T]?: T[P] extends object ? DeepPartal<T[P]> : T[P] }
+type DeepPartial<T> = { [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P] }
 
 export const DefaultSettings: Settings = {
     defaults: {
@@ -31,7 +31,7 @@ export const DefaultSettings: Settings = {
 const validThemes = ['light', 'dark', 'system']
 
 // Clamps settings to valid values and fills in missing values with defaults
-export const clampSettings = (settings: DeepPartal<Settings>) => {
+export const clampSettings = (settings: DeepPartial<Settings>) => {
     const cs: Settings = { ...DefaultSettings, ...settings } as Settings
 
     // Clamp target size between 0 and 2000

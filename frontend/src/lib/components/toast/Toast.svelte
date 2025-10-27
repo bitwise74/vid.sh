@@ -102,30 +102,6 @@
         overflow: hidden;
     }
 
-    /* Entrance animation */
-    @keyframes slidefade-in {
-        from {
-            transform: translateY(30%);
-            opacity: 0;
-        }
-        to {
-            transform: translateY(0);
-            opacity: 1;
-        }
-    }
-
-    /* Exit animation */
-    @keyframes slidefade-out {
-        from {
-            transform: translateY(0);
-            opacity: 1;
-        }
-        to {
-            transform: translateY(30%);
-            opacity: 0;
-        }
-    }
-
     .slidefade-in {
         animation: slidefade-in 1.5s cubic-bezier(0.1, 1, 0, 1) forwards;
     }

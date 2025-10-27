@@ -1,6 +1,6 @@
 import { goto } from '$app/navigation'
 import { PUBLIC_CDN_URL, PUBLIC_FILE_SIZE_LIMIT } from '$env/static/public'
-import { UploadFile, type Video } from '$lib/api-v2/Files'
+import { UploadFile, type Video } from '$lib/api/Files'
 import { user } from '$lib/stores/AppVars'
 import { toastStore } from '$lib/stores/ToastStore'
 import { videos } from '$lib/stores/VideoStore'

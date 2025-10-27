@@ -1,19 +1,14 @@
 <script lang="ts">
     import { user } from '$lib/stores/AppVars'
-    import { onMount } from 'svelte'
 
     function convertGB(b: number, point = 2): string {
         return (b / 1000000000).toFixed(point)
     }
-
-    onMount(() => {
-        console.log($user)
-    })
 </script>
 
 <div class="row g-3 mb-4">
     <div class="col-md-6 col-lg-6">
-        <div class="card border-2 shadow-sm stat-card-slim h-100 bg-body-tertiary">
+        <div class="card border-2 rounded-3 shadow-sm stat-card-slim h-100 bg-body-tertiary">
             <div class="card-body py-3 px-4 d-flex align-items-center justify-content-between">
                 <div class="d-flex flex-column">
                     <span class="text-muted small text-uppercase fw-semibold">Total Videos</span>
@@ -28,9 +23,8 @@
         </div>
     </div>
 
-    <!-- Storage Used -->
     <div class="col-md-6 col-lg-6">
-        <div class="card border-2 shadow-sm stat-card-slim h-100 bg-body-tertiary">
+        <div class="card border-2 shadow-sm rounded-3 stat-card-slim h-100 bg-body-tertiary">
             <div class="card-body py-3 px-4">
                 <div class="d-flex align-items-center justify-content-between mb-1">
                     <span class="text-muted small text-uppercase fw-semibold">Storage Used</span>
