@@ -38,7 +38,7 @@
 
 {#if d.file === undefined}
     <h1>No such file</h1>
-    <p>Either the file doesn't exist, was deleted, or is privat</p>
+    <p>Either the file doesn't exist, was deleted, or is private</p>
 {:else}
     <video autoplay controls src={`${PUBLIC_CDN_URL}/${d.file.file_key}`}> <track kind="captions" /></video>
 {/if}
