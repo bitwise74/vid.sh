@@ -73,6 +73,3 @@ Contributions are welcome! Please **open an issue or discussion** before submitt
 [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/) © 2025 [bitwise74](https://github.com/bitwise74)
 
 ---
-
-**Keywords for SEO (include in repo topics/tags):**  
-`online video editor, video hosting, cloud video storage, video trimming, video compression, free video editor, privacy-focused, svelte, web-app, open-source`
