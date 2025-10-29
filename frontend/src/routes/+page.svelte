@@ -12,13 +12,33 @@
 </script>
 
 <svelte:head>
-    <title>vid.sh - Simple video editor</title>
-    <meta property="og:title" content="Vid.sh - Suckless video editor" />
-    <meta
-        property="og:description"
-        content="Edit your videos right in your browser, store them securely in the cloud, and share them anywhere. All for free and open source. No downloads, no ads, no spying and no bullshit." />
+    <title>Vid.sh - Online Video Editor</title>
+    <meta property="og:title" content="Vid.sh - Online Video Editor" />
+    <meta name="description" content="Vid.sh is a free online video editor. Crop, trim, compress, convert, and share videos securely in the cloud, with no downloads or ads." />
+    <meta name="keywords" content="online video editor, video cropping, video trimming, video conversion, free video editor, cloud video editor" />
     <meta property="og:url" content="https://bitwise0x.dev" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:title" content="Vid.sh - Online Video Editor" />
+    <meta name="twitter:description" content="Edit your videos directly in the browser, store them securely in the cloud, and share anywhere." />
     <meta property="theme-color" content="#5733E7" />
+    <link rel="canonical" href="https://bitwise0x.dev/" />
+
+    <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            "name": "Vid.sh",
+            "url": "https://bitwise0x.dev",
+            "applicationCategory": "Multimedia",
+            "operatingSystem": "Web",
+            "offers": {
+                "@type": "Offer",
+                "price": "0",
+                "priceCurrency": "USD"
+            },
+            "description": "Vid.sh is a free online video editor. Crop, trim, compress, convert, and share videos in the cloud with no ads."
+        }
+    </script>
 </svelte:head>
 
 <div class="d-flex flex-column min-vh-100">

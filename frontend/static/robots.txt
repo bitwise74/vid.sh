@@ -1,3 +1,9 @@
 # https://www.robotstxt.org/robotstxt.html
 User-agent: *
-Disallow:
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-passwd
+Disallow: /reset-password
+Disallow: /dashboard
+Disallow: /settings
+Disallow: /verify
