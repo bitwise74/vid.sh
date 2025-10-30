@@ -74,6 +74,7 @@ func Fetch(c *gin.Context, d *types.Dependencies) {
 		Model(model.File{}).
 		Where("private = ? AND user_id = ?", false, prof.ID).
 		Select("file_key", "original_name", "duration", "created_at", "size", "format").
+		Order("created_at DESC").
 		Limit(25).
 		Find(&videos).
 		Error

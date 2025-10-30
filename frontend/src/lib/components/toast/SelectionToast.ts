@@ -36,7 +36,7 @@ export const videoSelectionToast = derived(selectedVideos, ($selectedVideos) => 
                             message: `${$selectedVideos.length} video${$selectedVideos.length > 1 ? 's' : ''} deleted successfully`
                         })
                         for (const id of $selectedVideos) {
-                            videos.delete(videos.get(id)!)
+                            videos.delete('id', id)
                         }
                         selectedVideos.set([])
                     } catch (error) {

@@ -60,7 +60,7 @@ async function onChange(e: Event) {
 
     const placeholders: Array<Video> = files.map((file, idx) => ({
         id: `${Date.now()}${idx}`,
-        file_key: '',
+        file_key: `${Date.now()}${idx}`,
         state: 'processing',
         name: file.name,
         private: false,
@@ -71,14 +71,14 @@ async function onChange(e: Event) {
         created_at: Date.now() / 1000
     }))
 
-    for (const p of placeholders) videos.addFront(p)
+    for (const p of placeholders) videos.fPush([p])
 
     const queue = [] as any[]
 
     for (const file of files) {
         queue.push(() => {
             return new Promise<void>(async (resolve) => {
-                const placeholder = placeholders.shift()
+                const placeholder = placeholders.shift()!
 
                 const video = await UploadFile(file).catch((err) => {
                     toastStore.error({
@@ -93,14 +93,16 @@ async function onChange(e: Event) {
                     video.thumbnail_url = `${PUBLIC_CDN_URL}/${video.file_key.replace('.mp4', '.webp')}`
                     video.video_url = `${PUBLIC_CDN_URL}/${video.file_key}`
 
-                    videos.replace(videos.idx(placeholder?.id), video)
+                    videos.delete('file_key', placeholder.file_key)
+                    videos.fPush([video])
+
                     user.update((u) => {
                         u.stats.uploadedFiles += 1
                         u.stats.usedStorage += video.size
                         return u
                     })
                 } else {
-                    videos.delete(placeholder!)
+                    videos.delete('file_key', placeholder.file_key)
                 }
 
                 resolve()

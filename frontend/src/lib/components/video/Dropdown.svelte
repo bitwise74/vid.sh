@@ -58,7 +58,7 @@
                 break
             case 'delete':
                 const resp = await DeleteFiles([video.id])
-                videos.delete(video)
+                videos.delete('id', video.id)
                 user.update((u) => {
                     u.stats = resp
                     return u
@@ -73,6 +73,27 @@
                 }
 
                 break
+            case 'toggle_private': {
+                const newState = !video.private
+
+                const newVid = await UpdateFile(video.id, { private: newState }).catch((err) => {
+                    toastStore.error({
+                        title: 'Failed to update video',
+                        message: err.message
+                    })
+                    return
+                })
+
+                if (!newVid) return
+
+                toastStore.success({
+                    title: `File marked as ${!newState ? 'public' : 'private'}`
+                })
+
+                video.private = newState
+                videos.replace(video.file_key, video)
+                return
+            }
             default:
                 toastStore.warning({
                     title: 'Not implemented yet'
@@ -102,9 +123,7 @@
                 title: 'Video renamed'
             })
 
-            const idx = videos.idx(video.file_key)
-            // TODO: figure out why it doesnt work
-            videos.replace(idx, newVid)
+            videos.replace(video.file_key, newVid)
         } catch (err) {
             toastStore.error({
                 title: 'Failed to rename video',
@@ -145,6 +164,11 @@
             <li><hr class="dropdown-divider" /></li>
             <li>
                 <button class="dropdown-item" onclick={() => handleVideoAction('edit')}><i class="bi bi-pencil me-2"></i>Edit</button>
+            </li>
+            <li>
+                <button class="dropdown-item text-{video.private ? 'danger' : 'body'}" onclick={() => handleVideoAction('toggle_private')}>
+                    <i class="bi-{video.private ? `eye` : `eye-slash`} me-2"></i>Make {video.private ? 'public' : 'private'}
+                </button>
             </li>
             <li>
                 <button class="dropdown-item text-danger" onclick={() => handleVideoAction('delete')}><i class="bi bi-trash me-2"></i>Delete</button>

@@ -3,6 +3,7 @@ package file
 import (
 	"bitwise74/video-api/internal/model"
 	"bitwise74/video-api/internal/types"
+	"fmt"
 	"net/http"
 	"slices"
 
@@ -27,13 +28,13 @@ func FetchBulk(c *gin.Context, d *types.Dependencies) {
 	userID := c.MustGet("userID").(string)
 
 	data := filterOpts{
-		Limit: 20,
-		Page:  0,
+		Limit: 10,
+		Page:  1, // Because we already load one page initially
 		Sort:  "newest",
 		Tags:  "",
 	}
 
-	if err := c.Bind(&data); err != nil {
+	if err := c.BindJSON(&data); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error":     "Malformed or invalid query string",
 			"requestID": requestID,
@@ -59,9 +60,11 @@ func FetchBulk(c *gin.Context, d *types.Dependencies) {
 		return
 	}
 
-	page := max(data.Page, 0)
+	page := max(data.Page, 1)
 	limit := min(max(data.Limit, 1), 250)
 	sort := data.Sort
+
+	fmt.Println(page, limit, sort)
 
 	order := "created_at desc"
 	switch sort {

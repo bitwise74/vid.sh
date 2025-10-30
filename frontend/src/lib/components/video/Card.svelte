@@ -75,7 +75,9 @@
                     <div class="d-flex align-items-center gap-3 small text-muted">
                         <span>{FormatSize(video.size)}</span>
                         <span class="d-sm-flex d-none">{FormatDate(video.created_at)}</span>
-                        <span class="badge bg-dark d-sm-flex d-none">{video.format.toUpperCase().slice(6)}</span>
+                        {#if video.private}
+                            <span class="badge bg-danger d-sm-flex d-none">Private</span>
+                        {/if}
                     </div>
                 </div>
             </div>
@@ -113,7 +115,9 @@
                 {#if !isProfile}
                     <div class="d-flex justify-content-between small text-muted">
                         <span>{FormatDate(video.created_at)}</span>
-                        <span class="badge bg-dark p-2">{video.format.toUpperCase().slice(6)}</span>
+                        {#if video.private}
+                            <span class="badge bg-danger p-badge">Private</span>
+                        {/if}
                     </div>
                     <div class="d-flex justify-content-between small text-muted">
                         <span>{FormatSize(video.size)}</span>
@@ -127,6 +131,10 @@
 <style>
     .hover-overlay {
         transition: opacity 0.2s ease;
+    }
+
+    .p-badge {
+        padding: 0.35rem;
     }
 
     .card-animate {

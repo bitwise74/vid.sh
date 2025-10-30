@@ -82,6 +82,14 @@ func Update(c *gin.Context, d *types.Dependencies) {
 		user.Username = data.Username
 	}
 
+	if user.Username == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":     "Please set a username first to enable your public profile",
+			"requestID": requestID,
+		})
+		return
+	}
+
 	if data.Avatar != nil {
 		file, err := os.CreateTemp("", "profile-pic-og-*")
 		if err != nil {

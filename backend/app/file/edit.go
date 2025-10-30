@@ -22,6 +22,7 @@ import (
 
 type fileEditOpts struct {
 	NewName           *string                       `json:"name,omitempty"`
+	Private           *bool                         `json:"private"`
 	ProcessingOptions *validators.ProcessingOptions `json:"processing_options,omitempty"`
 }
 
@@ -50,7 +51,7 @@ func Edit(c *gin.Context, d *types.Dependencies) {
 		return
 	}
 
-	if data.NewName == nil && data.ProcessingOptions == nil {
+	if data.NewName == nil && data.ProcessingOptions == nil && data.Private == nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error":     "No edit options provided",
 			"requestID": requestID,
@@ -92,6 +93,10 @@ func Edit(c *gin.Context, d *types.Dependencies) {
 
 	if data.NewName != nil {
 		file.OriginalName = *data.NewName
+	}
+
+	if data.Private != nil {
+		file.Private = *data.Private
 	}
 
 	originalSize := file.Size
@@ -234,7 +239,7 @@ func Edit(c *gin.Context, d *types.Dependencies) {
 
 	err = d.DB.Gorm.Transaction(
 		func(tx *gorm.DB) error {
-			err := tx.Updates(file).Error
+			err := tx.Model(&file).Select("*").Updates(file).Error
 			if err != nil {
 				return err
 			}

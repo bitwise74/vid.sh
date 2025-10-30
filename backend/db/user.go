@@ -121,6 +121,11 @@ func (d *DB) PluckUserID(email string) (string, error) {
 
 // CheckIfUsernameTaken checks if a username is already taken.
 func (d *DB) CheckIfUsernameTaken(username string) (bool, error) {
+	// This will be checked further later so its fine to return false
+	if username == "" {
+		return false, nil
+	}
+
 	var count int64
 
 	err := d.Gorm.
