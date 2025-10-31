@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { PUBLIC_BASE_URL, PUBLIC_CDN_URL } from '$env/static/public'
+    import { PUBLIC_CDN_URL } from '$env/static/public'
     import type { Video } from '$lib/api/Files'
     import type { PageProps } from './$types'
 
@@ -22,7 +22,7 @@
         <meta property="og:url" content="https://bitwise0x.dev" />
         <meta property="theme-color" content="#5733E7" />
     {:else}
-        <meta property="og:title" content={d.file.name} />
+        <meta property="og:title" content={d.file.name.replace('.mp4', '')} />
 
         <meta property="og:type" content="video.other" />
         <meta property="og:site_name" content={`Video by @${d.user.username}`} />
@@ -32,7 +32,7 @@
         <meta property="og:video:secure_url" content={`${PUBLIC_CDN_URL}/${d.file.file_key}`} />
         <meta property="theme-color" content="#5733E7" />
 
-        <link type="application/json+oembed" href={`${PUBLIC_BASE_URL}/api/oembed?username=${d.user.username}&size=${d.file.size}`} />
+        <!-- <link type="application/json+oembed" href={`${PUBLIC_BASE_URL}/api/oembed?username=${d.user.username}&size=${d.file.size}`} /> -->
     {/if}
 </svelte:head>
 

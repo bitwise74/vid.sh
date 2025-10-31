@@ -22,7 +22,7 @@
         </div>
     {:else}
         {#each $videos as video, i (video.id)}
-            <Card {video} {isProfile} {i} />
+            <Card {video} {isProfile} {i} animDelay={Math.min((i % 10) * 0.025, 0.5)} />
         {/each}
     {/if}
 </div>

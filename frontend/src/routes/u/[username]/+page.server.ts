@@ -1,6 +1,6 @@
 import { PUBLIC_BASE_URL, PUBLIC_CDN_URL } from '$env/static/public'
 import type { Video } from '$lib/api/Files'
-import type { PageLoad } from '../../settings/$types'
+import type { PageServerLoad } from './$types'
 
 export type ProfileVideo = {
     file_key: string
@@ -23,7 +23,7 @@ export type ProfileResponse = {
         found: boolean
 }
 
-export const load: PageLoad = async ({ params, fetch }) => {
+export const load: PageServerLoad = async ({ params, fetch }) => {
     const username = params['username']
     if (username === 'placeholder.svg') return { found: false };
 
@@ -32,7 +32,11 @@ export const load: PageLoad = async ({ params, fetch }) => {
         return { found: false }
     }
 
-    const body = await res.json()
+    console.log(res)
+
+    const body = await res.json().catch(err => {
+        console.error(err)
+    })
     body.found = true
 
     if (body.videos) {

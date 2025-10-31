@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
+	"gorm.io/gorm"
 )
 
 type partialProfile struct {
@@ -51,6 +52,14 @@ func Fetch(c *gin.Context, d *types.Dependencies) {
 		First(&prof).
 		Error
 	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error":     "User not found",
+				"requestID": requestID,
+			})
+			return
+		}
+
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error":     "Could not fetch profile",
 			"requestID": requestID,

@@ -9,6 +9,7 @@
     type Props = {
         video: Video
         isProfile?: boolean
+        animDelay: number
         i: number
     }
 
@@ -18,7 +19,7 @@
         animationSpeed = parseFloat(localStorage.getItem('optAnimationSpeed') || '1')
     })
 
-    let { video, isProfile = false, i }: Props = $props()
+    let { video, isProfile = false, i, animDelay }: Props = $props()
 
     function handleOnTick(e: Event) {
         const input = e.target as HTMLInputElement
@@ -42,7 +43,7 @@
 -->
 
 {#if $dashboardView === 'list'}
-    <div class="row justify-content-center card-animate" style="animation-delay:{i * 0.025}s" onanimationend={(e) => e.currentTarget.classList.remove('card-animate')}>
+    <div class="row justify-content-center card-animate" style="animation-delay:{animDelay}s" onanimationend={(e) => e.currentTarget.classList.remove('card-animate')}>
         <div class="col-xl-10">
             <div class="card d-flex flex-row align-items-center border-0 rounded-3 bg-body-tertiary shadow-sm mb-1">
                 <input type="checkbox" class="form-check-input m-3" aria-label="Select video" checked={$selected.includes(video.id)} onchange={handleOnTick} />
@@ -84,7 +85,7 @@
         </div>
     </div>
 {:else}
-    <div class="col-sm-6 col-12 col-lg-4 col-xl-3 mb-3 card-animate" style="animation-delay:{i * 0.02}s" onanimationend={(e) => e.currentTarget.classList.remove('card-animate')}>
+    <div class="col-sm-6 col-12 col-lg-4 col-xl-3 mb-3 card-animate" style="animation-delay:{animDelay}s" onanimationend={(e) => e.currentTarget.classList.remove('card-animate')}>
         <div class="card h-100 border-0 rounded-3 bg-body-tertiary shadow-sm">
             <div class="thumb position-relative bg-black rounded-3 aspect-video overflow-hidden">
                 {#if video.state == 'processing'}

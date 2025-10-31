@@ -7,9 +7,9 @@
     import { dashboardView } from '$lib/stores/appControl'
     import { currentVideoURL } from '$lib/stores/VideoStore'
     import { onDestroy } from 'svelte'
-    import type { ProfileData } from './+page.server'
+    import type { PageProps } from './$types'
 
-    let { data }: { data: ProfileData } = $props()
+    let { data }: { data: PageProps } = $props()
 
     const username = page.params.username
 
@@ -18,11 +18,28 @@
     })
 </script>
 
+<svelte:head>
+    {#if !(data as any).found}
+        <title>Profile not found - Vid.sh</title>
+        <meta property="og:title" content="Profile not found - Vid.sh" />
+        <meta property="og:description" content={`Either their profile is private, was deleted, or never exited`} />
+        <meta property="theme-color" content="#5733E7" />
+    {/if}
+
+    {#if (data as any).found}
+        <title>{username} on Vid.sh</title>
+        <meta property="og:title" content={`@${username}`} />
+        <meta property="og:image" content={`${PUBLIC_CDN_URL}/avatars/${data.avatarHash}`} />
+        <meta property="og:description" content={`View ${data.videos?.length || 0} videos posted by them on vid.sh`} />
+        <meta property="theme-color" content="#5733E7" />
+    {/if}
+</svelte:head>
+
 {#if $currentVideoURL != ''}
     <Player />
 {/if}
 
-{#if !data.found}
+{#if !(data as any).found}
     <Header title="Profile Not Found" />
     <div class="container d-flex justify-content-center align-items-center" style="height: 80vh;">
         <div class="card text-center shadow-lg border-0 p-4 bg-body-tertiary" style="max-width: 420px;">

@@ -28,7 +28,7 @@ export type UserUpdate = {
  */
 export async function GetUser(fetch: typeof window.fetch): Promise<User> {
     const req = await fetch(`${PUBLIC_BASE_URL}/api/users`, {
-        credentials: 'include'
+        credentials: typeof window !== 'undefined' ? 'include' : undefined
     })
     const body = await req.json()
 
