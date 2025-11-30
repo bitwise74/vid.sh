@@ -8,6 +8,7 @@ import (
 	"bitwise74/video-api/pkg/util"
 	"bitwise74/video-api/pkg/validators"
 	"context"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -22,6 +23,7 @@ import (
 func Upload(c *gin.Context, d *types.Dependencies) {
 	requestID := c.MustGet("requestID").(string)
 	userID := c.MustGet("userID").(string)
+	userDefaultPrivateVideos := c.MustGet("userDefaultPrivateVideos").(bool)
 
 	fh, err := c.FormFile("file")
 	if err != nil {
@@ -116,7 +118,7 @@ func Upload(c *gin.Context, d *types.Dependencies) {
 	done := make(chan error, 1)
 
 	ctxReq := c.Request.Context()
-	ctxTimeout, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	ctxTimeout, cancel := context.WithTimeout(context.Background(), time.Minute*10)
 	defer cancel()
 
 	ctx, cancelMerged := util.MergeContexts(ctxReq, ctxTimeout)
@@ -171,6 +173,9 @@ func Upload(c *gin.Context, d *types.Dependencies) {
 		zap.L().Error("Failed to upload video to S3", zap.Error(err))
 		return
 	}
+
+	fmt.Println(userDefaultPrivateVideos)
+	fileEnt.Private = userDefaultPrivateVideos
 
 	tx := d.DB.Gorm.Begin()
 

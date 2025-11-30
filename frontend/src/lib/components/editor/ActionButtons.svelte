@@ -1,10 +1,9 @@
 <script lang="ts">
-    import { goto } from '$app/navigation'
+    import { goto, invalidateAll } from '$app/navigation'
     import { ExportVideo, UpdateFile, UploadFile } from '$lib/api/Files'
-    import { shouldRefetch } from '$lib/stores/appControl'
     import { isLoggedIn, jobStats } from '$lib/stores/AppVars'
     import { isExporting, isSaving, selectedFile, settingsUnchanged, videoName } from '$lib/stores/EditOptions'
-    import { AutoCopy } from '$lib/utils/audoCopy'
+    import { AutoCopy } from '$lib/utils/autoCopy'
     import { DownloadBlob } from '$lib/utils/downloadBlob'
     import { GetExportCropCoords } from '$lib/utils/getExportCropCoordinates'
     import { toastStore } from '../../stores/ToastStore'
@@ -19,7 +18,7 @@
     const disableBtn = (): boolean => $isExporting || $isSaving || $settingsUnchanged
 
     async function redirectToDashboard() {
-        shouldRefetch.set(true)
+        await invalidateAll()
         await goto('/dashboard')
     }
 
@@ -166,6 +165,7 @@
 <div class="border-top mt-4 pt-4">
     <div class="d-grid gap-3">
         <!-- Editing an existing video -->
+        <!-- TODO: add save as copy option -->
         {#if videoID}
             <button class="btn btn-outline-warning" disabled={disableBtn()} onclick={handleUpdate}>
                 {#if $isSaving}

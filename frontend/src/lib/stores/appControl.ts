@@ -1,6 +1,5 @@
-import { writable } from "svelte/store"
+import { writable } from 'svelte/store'
 
-export const shouldRefetch = writable(true)
 export const selectedVideos = writable<Array<string>>([])
 
 export const dashboardView = writable<string>('grid')

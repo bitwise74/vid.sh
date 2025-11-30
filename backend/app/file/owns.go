@@ -22,8 +22,8 @@ func FileOwns(c *gin.Context, d *types.Dependencies) {
 		return
 	}
 
-	fileID := c.Param("id")
-	if fileID == "" {
+	fileKey := c.Param("id")
+	if fileKey == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error":     "No file ID provided",
 			"requestID": requestID,
@@ -34,7 +34,7 @@ func FileOwns(c *gin.Context, d *types.Dependencies) {
 	var owns bool
 	err := d.DB.Gorm.
 		Model(model.File{}).
-		Where("id = ? AND user_id = ?", fileID, userID).
+		Where("file_key = ? AND user_id = ?", fileKey, userID).
 		Select("count(*) > 0").
 		Find(&owns).
 		Error
@@ -63,7 +63,7 @@ func FileOwns(c *gin.Context, d *types.Dependencies) {
 
 	c.JSON(code, gin.H{"owns": owns})
 
-	if err := redis.Rdb.Set(context.TODO(), "file_owns:"+userID+":"+fileID, `{"owns": `+strconv.FormatBool(owns)+`}`, time.Minute*15).Err(); err != nil {
+	if err := redis.Rdb.Set(context.TODO(), "file_owns:"+userID+":"+fileKey, `{"owns": `+strconv.FormatBool(owns)+`}`, time.Minute*15).Err(); err != nil {
 		zap.L().Error("Failed to set cache for file owns", zap.Error(err))
 	}
 }

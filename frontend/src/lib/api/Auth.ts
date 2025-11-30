@@ -104,7 +104,7 @@ export async function Logout() {
         goto('/')
     }
 
-    localStorage.setItem("optDisableRoot", "false")
+    localStorage.setItem('optDisableRoot', 'false')
 
     toastStore.success({ title: 'Logged out successfully' })
 }

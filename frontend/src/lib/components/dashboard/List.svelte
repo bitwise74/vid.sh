@@ -11,7 +11,7 @@
 {/if}
 
 <div class="row">
-    {#if $videos.length === 0}
+    {#if ($videos?.length ?? 0) === 0}
         <div class="py-5 text-center">
             <div class="d-flex align-items-center justify-content-center rounded-circle bg-body-tertiary mx-auto mb-4" style="width: 96px; height: 96px;">
                 <i class="bi bi-file-earmark-play text-muted display-4"></i>
@@ -21,7 +21,7 @@
             <a href="/editor" class="btn btn-dark">Open Editor</a>
         </div>
     {:else}
-        {#each $videos as video, i (video.id)}
+        {#each $videos ?? [] as video, i (video.id)}
             <Card {video} {isProfile} {i} animDelay={Math.min((i % 10) * 0.025, 0.5)} />
         {/each}
     {/if}

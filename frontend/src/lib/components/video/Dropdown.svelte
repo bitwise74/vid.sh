@@ -30,7 +30,7 @@
                 currentVideoURL.set(videoURL)
                 break
             case 'edit':
-                window.location.href = `/editor?id=${video.id}`
+                window.location.href = `/editor?id=${video.file_key}`
                 break
             case 'rename':
                 // Quick and dirty, TODO: improve later
@@ -44,7 +44,7 @@
                 break
             case 'share':
                 if (localStorage.getItem('optRichEmbeds') === 'true') {
-                    videoURL = `${PUBLIC_BASE_URL}/v/${video.id}`
+                    videoURL = `${PUBLIC_BASE_URL}/v/${video.file_key}`
                 }
 
                 if (navigator.share) {

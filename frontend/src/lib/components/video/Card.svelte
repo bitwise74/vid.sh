@@ -5,6 +5,7 @@
     import { FormatDate, FormatDuration, FormatSize } from '$lib/utils/format'
     import { onMount } from 'svelte'
     import VideoDropdown from './Dropdown.svelte'
+    import { PUBLIC_BASE_URL } from '$env/static/public'
 
     type Props = {
         video: Video
@@ -34,6 +35,20 @@
             selected.update((ids) => ids.filter((id) => id !== video.id))
         }
     }
+
+    function updateURL() {
+        currentVideoURL.set(video.video_url!)
+
+        if (localStorage.getItem('optRichEmbeds') === 'true') {
+            // Overwrite for local testing. Normally it would point to the wrong port
+            if (PUBLIC_BASE_URL.includes('localhost')) {
+                let base = 'http://localhost:5173'
+                window.history.replaceState({}, '', `${base}/v/${video.file_key}`)
+            } else {
+                window.history.replaceState({}, '', `${PUBLIC_BASE_URL}/v/${video.file_key}`)
+            }
+        }
+    }
 </script>
 
 <!--
@@ -58,7 +73,7 @@
                     {:else}
                         <img src={video.thumbnail_url} alt={video.name} class="w-100 h-100 object-fit-cover bg-body" />
                         <div class="hover-overlay d-flex align-items-center justify-content-center">
-                            <button class="btn btn-sm bg-black text-white" onclick={() => currentVideoURL.set(video.video_url!)} aria-label="Play video">
+                            <button class="btn btn-sm bg-black text-white" onclick={() => updateURL()} aria-label="Play video">
                                 <i class="bi-play-fill me-1"></i>Play
                             </button>
                         </div>
@@ -97,7 +112,7 @@
                 {:else}
                     <img src={video.thumbnail_url} alt={video.name} class="w-100 h-100 object-fit-cover" />
                     <div class="hover-overlay d-flex align-items-center justify-content-center">
-                        <button class="btn btn-sm bg-black text-white" onclick={() => currentVideoURL.set(video.video_url!)} aria-label="Play video">
+                        <button class="btn btn-sm bg-black text-white" onclick={() => updateURL()} aria-label="Play video">
                             <i class="bi bi-play-fill me-1"></i>Play
                         </button>
                     </div>
@@ -113,17 +128,15 @@
                     <VideoDropdown {video} {isProfile} />
                 </div>
 
-                {#if !isProfile}
-                    <div class="d-flex justify-content-between small text-muted">
-                        <span>{FormatDate(video.created_at)}</span>
-                        {#if video.private}
-                            <span class="badge bg-danger p-badge">Private</span>
-                        {/if}
-                    </div>
-                    <div class="d-flex justify-content-between small text-muted">
-                        <span>{FormatSize(video.size)}</span>
-                    </div>
-                {/if}
+                <div class="d-flex justify-content-between small text-muted">
+                    <span>{FormatDate(video.created_at)}</span>
+                    {#if video.private}
+                        <span class="badge bg-danger p-badge">Private</span>
+                    {/if}
+                </div>
+                <div class="d-flex justify-content-between small text-muted">
+                    <span>{FormatSize(video.size)}</span>
+                </div>
             </div>
         </div>
     </div>

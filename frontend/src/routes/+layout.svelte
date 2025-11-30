@@ -7,15 +7,21 @@
     import { onMount } from 'svelte'
     import '../app.css'
 
-    const { children, data }: { children: any; data: User | null } = $props()
+    const { data, children }: any = $props()
 
-    if (data) {
-        user.set(data)
-        videos.set(data.videos)
+    $effect(() => {
+        if (data.loggedIn) {
+            user.set(data)
+            videos.set(data.videos)
+            isLoggedIn.set(true)
+            loadedVideosCount.set(data.videos?.length ?? 0)
+            return
+        }
 
-        isLoggedIn.set(true)
-        loadedVideosCount.set(data.videos?.length ?? 0)
-    }
+        isLoggedIn.set(false)
+        loadedVideosCount.set(0)
+        videos.set([])
+    })
 
     onMount(() => {
         dashboardView.set(localStorage.getItem('view') || 'grid')

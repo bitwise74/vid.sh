@@ -53,10 +53,12 @@ type UserUpdateOpts struct {
 	AvatarCrop string `form:"avatarCrop"`
 
 	AvatarCropProper []int
+
+	DefaultPrivateVideos *bool `form:"defaultPrivateVideos"`
 }
 
 func (u UserUpdateOpts) IsEmpty() bool {
-	return u.Username == "" && u.Avatar == nil && u.PublicProfileEnabled == nil
+	return u.Username == "" && u.Avatar == nil && u.PublicProfileEnabled == nil && u.AvatarCrop == "" && u.DefaultPrivateVideos == nil
 }
 
 const maxAvatarSize = 5242880

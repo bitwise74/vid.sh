@@ -18,8 +18,8 @@ type partialUserData struct {
 func Fetch(c *gin.Context, d *types.Dependencies) {
 	requestID := c.MustGet("requestID").(string)
 
-	fileID := c.Param("id")
-	if fileID == "" {
+	fileKey := c.Param("id")
+	if fileKey == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error":     "No file ID provided",
 			"requestID": requestID,
@@ -31,7 +31,7 @@ func Fetch(c *gin.Context, d *types.Dependencies) {
 	var file model.File
 
 	err := d.DB.Gorm.
-		Where("id = ? AND private = ?", fileID, false).
+		Where("file_key = ? AND private = ?", fileKey, false).
 		First(&file).
 		Error
 	if err != nil {

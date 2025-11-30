@@ -4,6 +4,7 @@ import { UploadFile, type Video } from '$lib/api/Files'
 import { user } from '$lib/stores/AppVars'
 import { toastStore } from '$lib/stores/ToastStore'
 import { videos } from '$lib/stores/VideoStore'
+import { get } from 'svelte/store'
 
 const ALLOWED_FORMATS = ['video/mp4', 'video/quicktime', 'video/x-matroska']
 
@@ -63,7 +64,7 @@ async function onChange(e: Event) {
         file_key: `${Date.now()}${idx}`,
         state: 'processing',
         name: file.name,
-        private: false,
+        private: get(user).defaultPrivateVideos || false,
         format: file.type,
         size: file.size,
         version: 1,

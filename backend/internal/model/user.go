@@ -27,6 +27,7 @@ type User struct {
 	AvatarHash           string `gorm:"default:null" json:"avatarHash"`
 	Username             string `gorm:"default:null;unique" json:"username"`
 	PublicProfileEnabled bool   `gorm:"default:false" json:"publicProfileEnabled"`
+	DefaultPrivateVideos bool   `gorm:"default:true" json:"defaultPrivateVideos"`
 
 	// VerificationTokens []VerificationToken `gorm:"foreignKey:UserID" json:"-"` // TODO: drop this
 	Tokens []Token `gorm:"foreignKey:UserID" json:"-"`

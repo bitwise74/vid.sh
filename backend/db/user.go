@@ -74,7 +74,7 @@ func (d *DB) FetchUserDataByID(id string) (*model.User, error) {
 
 	err := d.Gorm.
 		Where("id = ?", id).
-		Select("id", "username", "avatar_hash", "public_profile_enabled").
+		Select("id", "username", "avatar_hash", "public_profile_enabled", "default_private_videos").
 		Preload("Files", func(db *gorm.DB) *gorm.DB {
 			return db.Limit(10).Order("created_at DESC")
 		}).

@@ -123,7 +123,7 @@ func NewRouter() (*gin.Engine, error) {
 		// GET /api/files/:id/owns	-> Checks if a user owns a file
 		ff.GET("/:id/owns", jwt, func(c *gin.Context) { file.FileOwns(c, d) })
 
-		// GET /api/files/:id		-> Returns a file by it's ID if the user owns it
+		// GET /api/files/:id		-> Returns a file by it's file_key if the user owns it
 		ff.GET("/:id", func(c *gin.Context) { file.Fetch(c, d) })
 
 		// POST /api/files/bulk 	-> Returns a user's files in bulk

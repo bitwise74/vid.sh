@@ -24,6 +24,7 @@ type partialVideo struct {
 	CreatedAt    int64   `json:"created_at"`
 	Size         int64   `json:"size"`
 	Format       string  `json:"format"`
+	Version      int     `json:"version"`
 }
 
 type ProfileResponse struct {
@@ -82,7 +83,7 @@ func Fetch(c *gin.Context, d *types.Dependencies) {
 	err = d.DB.Gorm.
 		Model(model.File{}).
 		Where("private = ? AND user_id = ?", false, prof.ID).
-		Select("file_key", "original_name", "duration", "created_at", "size", "format").
+		Select("file_key", "original_name", "duration", "created_at", "size", "format", "version").
 		Order("created_at DESC").
 		Limit(25).
 		Find(&videos).

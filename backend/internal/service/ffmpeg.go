@@ -54,6 +54,9 @@ func NewJobQueue() *JobQueue {
 	maxJobs, _ := strconv.ParseInt(os.Getenv("FFMPEG_MAX_JOBS"), 10, 32)
 	workers, _ := strconv.ParseInt(os.Getenv("FFMPEG_WORKERS"), 10, 32)
 
+	workers = max(1, workers)
+	maxJobs = max(100, maxJobs) // Reasonable default
+
 	zap.L().Debug("Initializing job queue", zap.Int64("max_jobs", maxJobs))
 
 	return &JobQueue{

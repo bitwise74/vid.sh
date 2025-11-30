@@ -1,6 +1,6 @@
 <script lang="ts">
+    import { invalidateAll } from '$app/navigation'
     import { ResetPassword } from '$lib/api/Auth'
-    import { shouldRefetch } from '$lib/stores/appControl'
     import { toastStore } from '$lib/stores/ToastStore'
 
     type Props = {
@@ -32,7 +32,7 @@
 
         try {
             await ResetPassword(token, newPassword)
-            shouldRefetch.set(true)
+            await invalidateAll()
 
             toastStore.success({
                 title: 'Password reset successful',

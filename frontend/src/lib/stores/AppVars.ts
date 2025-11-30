@@ -14,4 +14,15 @@ export const jobStats = writable<JobStats>({
     state: 'Uploading video to server...'
 })
 
-export const user = writable<User>()
+export const user = writable<User>({
+    avatarHash: '',
+    publicProfileEnabled: false,
+    stats: {
+        maxStorage: 0,
+        usedStorage: 0,
+        uploadedFiles: 0
+    },
+    username: 'Unknown',
+    videos: [],
+    defaultPrivateVideos: false
+})

@@ -13,7 +13,7 @@
                 <div class="d-flex flex-column">
                     <span class="text-muted small text-uppercase fw-semibold">Total Videos</span>
                     <span class="fs-4 fw-bold text-primary mb-0">
-                        {$user.stats.uploadedFiles ?? 0}
+                        {$user.stats?.uploadedFiles || 0}
                     </span>
                 </div>
                 <div class="stat-icon-sm rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center">
@@ -34,14 +34,14 @@
                 </div>
                 <div class="d-flex align-items-center justify-content-between">
                     <span class="fw-semibold">
-                        {convertGB($user.stats.usedStorage ?? 0)}
+                        {convertGB($user.stats?.usedStorage || 0)}
                     </span>
                     <span class="text-muted small">
-                        / {convertGB($user.stats.maxStorage ?? 0, 0)} GB
+                        / {convertGB($user.stats?.maxStorage || 0, 0)} GB
                     </span>
                 </div>
                 <div class="progress mt-2" style="height: 4px;">
-                    <div class="progress-bar bg-info" role="progressbar" style="width: {(($user.stats.usedStorage ?? 0) / ($user.stats.maxStorage ?? 1)) * 100}%"></div>
+                    <div class="progress-bar bg-info" role="progressbar" style="width: {(($user.stats?.usedStorage || 0) / ($user.stats?.maxStorage || 1)) * 100}%"></div>
                 </div>
             </div>
         </div>

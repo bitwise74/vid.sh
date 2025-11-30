@@ -23,10 +23,10 @@ func Crop(path string, opts []int) (string, error) {
 		return "", fmt.Errorf("invalid number of cropping options provided")
 	}
 
-	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(time.Second*15))
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
 	defer cancel()
 
-	tmpFile, err := os.CreateTemp("", "profile-pic-*.webp")
+	tmpFile, err := os.CreateTemp("", "cropped-*.webp")
 	if err != nil {
 		return "", fmt.Errorf("failed to create temporary file for vips, %w", err)
 	}

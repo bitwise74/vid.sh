@@ -1,6 +1,6 @@
 <script lang="ts">
+    import { invalidateAll } from '$app/navigation'
     import { RequestPasswordReset } from '$lib/api/Auth'
-    import { shouldRefetch } from '$lib/stores/appControl'
     import { toastStore } from '../../stores/ToastStore'
 
     type FormState = 'waiting' | 'submitting' | 'success' | 'error'
@@ -22,7 +22,7 @@
             }
 
             await RequestPasswordReset(email)
-            shouldRefetch.set(true)
+            await invalidateAll()
             formState = 'success'
 
             toastStore.success({

@@ -17,7 +17,7 @@ func MakeThumbnail(input, userID string, j *JobQueue) (p string, err error) {
 	zap.L().Debug("Creating thumbnail for video")
 
 	done := make(chan error, 1)
-	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*1)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
 	defer cancel()
 
 	thumbPath := path.Join(os.TempDir(), util.RandStr(10)+".webp")

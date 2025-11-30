@@ -13,6 +13,7 @@ export type User = {
     stats: UserStats
     videos: Array<Video>
     publicProfileEnabled: boolean
+    defaultPrivateVideos: boolean
 }
 
 export type UserUpdate = {
@@ -21,6 +22,9 @@ export type UserUpdate = {
     username?: string
     publicProfileEnabled?: boolean
     email?: string
+
+    // Should uploaded videos be private by default?
+    defaultPrivateVideos?: boolean
 }
 /**
  * Fetches the current user
@@ -62,6 +66,10 @@ export async function UpdateUser(data: Omit<UserUpdate, 'avatarHash'>): Promise<
 
     if (data.publicProfileEnabled !== undefined) {
         form.append('publicProfileEnabled', `${data.publicProfileEnabled}`)
+    }
+
+    if (data.defaultPrivateVideos !== undefined) {
+        form.append('defaultPrivateVideos', `${data.defaultPrivateVideos}`)
     }
 
     const req = await fetch(`${PUBLIC_BASE_URL}/api/users/update`, {

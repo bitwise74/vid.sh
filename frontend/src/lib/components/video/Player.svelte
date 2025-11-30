@@ -1,9 +1,11 @@
 <script lang="ts">
-    import { trimEnd, trimStart, videoDuration, videoSource } from '$lib/stores/EditOptions'
+    import { selectedFile, trimEnd, trimStart, videoDuration, videoSource } from '$lib/stores/EditOptions'
     import { currentTime } from '$lib/stores/VideoStore'
     import RangeSlider from 'svelte-range-slider-pips'
     import CropBox from '../editor/CropBox.svelte'
     import { FormatDuration } from '$lib/utils/format'
+    import { onMount } from 'svelte'
+    import { toastStore } from '$lib/stores/ToastStore'
 
     let {
         onTimeUpdate
@@ -17,6 +19,55 @@
     let isMuted = $state(false)
     let volume = $state(0.75)
     let wasPaused = false
+
+    onMount(() => {
+        video.addEventListener('error', () => {
+            const err = video.error
+            if (!err) return
+
+            switch (err.code) {
+                case MediaError.MEDIA_ERR_ABORTED:
+                    toastStore.error({
+                        title: 'Video playback aborted',
+                        message: 'You aborted the video playback.',
+                        duration: 30000
+                    })
+                    break
+                case MediaError.MEDIA_ERR_NETWORK:
+                    toastStore.error({
+                        title: 'Network error',
+                        message: 'A network error caused the video download to fail part-way.',
+                        duration: 30000
+                    })
+                    break
+                case MediaError.MEDIA_ERR_DECODE:
+                    toastStore.error({
+                        title: 'Decoding error',
+                        message:
+                            'Failed to decode the video. This may be due to browser limitations or video corruption. You can try uploading the video to cloud, then editing it from there to potentially fix the issue.',
+                        duration: 30000
+                    })
+                    break
+                case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED:
+                    toastStore.error({
+                        title: 'Video not supported',
+                        message: 'The video could not be loaded, either because the server or network failed or because the format is not supported.',
+                        duration: 30000
+                    })
+                    break
+                default:
+                    toastStore.error({
+                        title: 'Unknown error',
+                        message: 'An unknown error occurred during video playback.',
+                        duration: 30000
+                    })
+                    break
+            }
+
+            selectedFile.set(null)
+            videoSource.set('')
+        })
+    })
 
     function togglePlay() {
         if (video.currentTime >= $trimEnd && $trimEnd > $trimStart) {

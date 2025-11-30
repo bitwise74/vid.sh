@@ -1,6 +1,7 @@
 <script lang="ts">
+    import { goto } from '$app/navigation'
     import { page } from '$app/state'
-    import { PUBLIC_CDN_URL } from '$env/static/public'
+    import { PUBLIC_BASE_URL, PUBLIC_CDN_URL, PUBLIC_SUPPORTED_VIDEO_FORMATS } from '$env/static/public'
     import { CheckFileOwnership, FetchFile } from '$lib/api/Files'
     import ActionButtons from '$lib/components/editor/ActionButtons.svelte'
     import Compress from '$lib/components/editor/tabs/Compress.svelte'
@@ -9,6 +10,7 @@
     import Header from '$lib/components/Header.svelte'
     import VideoPlayer from '$lib/components/video/Player.svelte'
     import VideoUpload from '$lib/components/video/Upload.svelte'
+    import { isLoggedIn, user } from '$lib/stores/AppVars'
     import { exportFormat, exportFps, losslessExport, selectedFile, targetSize, trimEnd, trimStart, videoDuration, videoSource } from '$lib/stores/EditOptions'
     import { toastStore } from '$lib/stores/ToastStore'
     import { currentTime } from '$lib/stores/VideoStore'
@@ -16,6 +18,7 @@
     import { Turnstile } from 'svelte-turnstile'
 
     const videoID = page.url.searchParams.get('id')
+    const supportedExtensions = PUBLIC_SUPPORTED_VIDEO_FORMATS.split(',').map((t) => t.trim())
 
     let videoName = $state('')
     let videoSize = $state(0)
@@ -24,6 +27,16 @@
     // Mainly checks for when the video ID query is present
     onMount(async () => {
         handleVideoClear()
+
+        if (!$isLoggedIn && !videoID) {
+            toastStore.error({
+                title: 'You must be logged in to edit videos',
+                message: "In the future we'll support anonymous video editing, but for now please log in or create an account to use the editor",
+                duration: 10000
+            })
+            goto('/')
+            return
+        }
 
         if (localStorage.getItem('optLosslessExport')) {
             losslessExport.set(true)
@@ -84,6 +97,15 @@
     })
 
     const handleVideoSelect = (f: File) => {
+        if (!supportedExtensions.includes(f.type.split('/')[1])) {
+            toastStore.error({
+                title: 'Unsupported file type',
+                message: `The selected file type (${f.type}) is not supported. Supported types are: ${supportedExtensions.join(', ')}`,
+                duration: 10000
+            })
+            return
+        }
+
         if ($videoSource) URL.revokeObjectURL($videoSource)
         videoSource.set(URL.createObjectURL(f))
 
@@ -170,12 +192,15 @@
 <div class="min-vh-100">
     <Header title="Editor" page="editor" />
 
-    <Turnstile
-        siteKey="0x4AAAAAABkH5R_4hvXLiZqn"
-        appearance="interaction-only"
-        on:turnstile-callback={(e: CustomEvent<{ token: string }>) => {
-            turnstileToken = e.detail.token
-        }} />
+    <!-- Ignore turnstile for localhost -->
+    {#if !PUBLIC_BASE_URL.includes('localhost')}
+        <Turnstile
+            siteKey="0x4AAAAAABkH5R_4hvXLiZqn"
+            appearance="interaction-only"
+            on:turnstile-callback={(e: CustomEvent<{ token: string }>) => {
+                turnstileToken = e.detail.token
+            }} />
+    {/if}
 
     <main class="container py-4">
         <div class="row g-4">

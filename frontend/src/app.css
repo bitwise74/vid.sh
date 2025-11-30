@@ -21,7 +21,7 @@
 }
 
 .bg-purple {
-        background-color: #7c3aed !important;
+    background-color: #7c3aed !important;
 }
 
 .gradient-primary {
@@ -93,21 +93,21 @@
 }
 
 .btn-dynamic {
-        background-color: var(--btn-dynamic);
-        color: var(--bs-body-color);
-        border: 0;
+    background-color: var(--btn-dynamic);
+    color: var(--bs-body-color);
+    border: 0;
 }
 
 .btn-dynamic:hover {
-        background-color: var(--btn-dynamic);
-        filter: brightness(0.9);
-        color: var(--bs-body-color);
-        transition: filter 0.2s;
+    background-color: var(--btn-dynamic);
+    filter: brightness(0.9);
+    color: var(--bs-body-color);
+    transition: filter 0.2s;
 }
 
 .btn-dynamic:active {
-  transform: scale(0.98);
-  transition: transform 0.1s;
+    transform: scale(0.98);
+    transition: transform 0.1s;
 }
 
 @keyframes slidefade-in {
@@ -122,12 +122,12 @@
 }
 
 @keyframes slidefade-out {
-        from {
-            margin-top: 0px;
-            opacity: 1;
-        }
-        to {
-            margin-top: -4px;
-            opacity: 0;
-        }
+    from {
+        margin-top: 0px;
+        opacity: 1;
+    }
+    to {
+        margin-top: -4px;
+        opacity: 0;
+    }
 }

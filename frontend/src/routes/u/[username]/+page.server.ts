@@ -10,31 +10,28 @@ export type ProfileVideo = {
     thumbnail_url: string
     video_url: string
     size: number
+    version: number
 }
 
-export type ProfileData = {
-    avatarHash: string
-    username: string
-    videos: ProfileVideo[]
-    found: boolean
-}
+export type ProfileResponse =
+    | { found: false }
+    | {
+          found: true
+          avatarHash: string
+          username: string
+          videos: ProfileVideo[]
+      }
 
-export type ProfileResponse = {
-        found: boolean
-}
-
-export const load: PageServerLoad = async ({ params, fetch }) => {
+export const load: PageServerLoad = async ({ params, fetch }): Promise<ProfileResponse> => {
     const username = params['username']
-    if (username === 'placeholder.svg') return { found: false };
+    if (username === 'placeholder.svg') return { found: false }
 
     const res = await fetch(`${PUBLIC_BASE_URL}/api/profile/${username}`)
     if (res.status === 404) {
         return { found: false }
     }
 
-    console.log(res)
-
-    const body = await res.json().catch(err => {
+    const body = await res.json().catch((err) => {
         console.error(err)
     })
     body.found = true

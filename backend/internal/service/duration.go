@@ -13,7 +13,7 @@ import (
 )
 
 func GetDuration(p string) (d float64, err error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
 	defer cancel()
 
 	zap.L().Debug("Running FFprobe to determine video duration")

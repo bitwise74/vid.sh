@@ -204,6 +204,7 @@ func Update(c *gin.Context, d *types.Dependencies) {
 			"avatar_hash":            gorm.Expr("?", user.AvatarHash),
 			"username":               gorm.Expr("?", user.Username),
 			"public_profile_enabled": gorm.Expr("?", user.PublicProfileEnabled),
+			"default_private_videos": gorm.Expr("?", data.DefaultPrivateVideos),
 		}).Error
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{

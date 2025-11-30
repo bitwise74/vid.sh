@@ -3,7 +3,9 @@ import { GetUser } from '$lib/api/User'
 import { toastStore } from '$lib/stores/ToastStore'
 import type { LayoutServerLoad } from './$types'
 
-export const load: LayoutServerLoad = async ({ cookies, fetch }) => {
+export const load: LayoutServerLoad = async ({ cookies, fetch, depends }) => {
+    depends('app:layout')
+
     if (cookies.get('logged_in') !== '1') return null
 
     const data = await GetUser(fetch).catch((err) => {
@@ -13,7 +15,10 @@ export const load: LayoutServerLoad = async ({ cookies, fetch }) => {
         })
     })
 
-    if (!data) return null
+    if (!data)
+        return {
+            loggedIn: false
+        }
 
     const vids = data.videos || []
 
@@ -25,5 +30,9 @@ export const load: LayoutServerLoad = async ({ cookies, fetch }) => {
     }
 
     data.videos = vids
+
+    // Fix this ugly piece of shit
+    ;(data as any).loggedIn = true
+
     return data
 }

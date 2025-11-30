@@ -1,7 +1,6 @@
 <script lang="ts">
-    import { goto } from '$app/navigation'
+    import { goto, invalidateAll } from '$app/navigation'
     import { Login } from '$lib/api/Auth'
-    import { shouldRefetch } from '$lib/stores/appControl'
     import { writable } from 'svelte/store'
     import { toastStore } from '../stores/ToastStore'
 
@@ -25,8 +24,8 @@
             }
 
             await Login({ email, password, remember })
-            shouldRefetch.set(true)
-            await goto('/dashboard')
+            await invalidateAll()
+            await goto('/dashboard', { replaceState: true })
         } catch (err) {
             console.error('Failed to login', err)
             toastStore.error({

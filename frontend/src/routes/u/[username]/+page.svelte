@@ -7,9 +7,10 @@
     import { dashboardView } from '$lib/stores/appControl'
     import { currentVideoURL } from '$lib/stores/VideoStore'
     import { onDestroy } from 'svelte'
-    import type { PageProps } from './$types'
+    import type { ProfileResponse } from './+page.server'
+    import Search from '$lib/components/dashboard/Search.svelte'
 
-    let { data }: { data: PageProps } = $props()
+    let { data }: { data: ProfileResponse } = $props()
 
     const username = page.params.username
 
@@ -19,14 +20,14 @@
 </script>
 
 <svelte:head>
-    {#if !(data as any).found}
+    {#if data.found}
         <title>Profile not found - Vid.sh</title>
         <meta property="og:title" content="Profile not found - Vid.sh" />
         <meta property="og:description" content={`Either their profile is private, was deleted, or never exited`} />
         <meta property="theme-color" content="#5733E7" />
     {/if}
 
-    {#if (data as any).found}
+    {#if data.found}
         <title>{username} on Vid.sh</title>
         <meta property="og:title" content={`@${username}`} />
         <meta property="og:image" content={`${PUBLIC_CDN_URL}/avatars/${data.avatarHash}`} />
@@ -39,7 +40,7 @@
     <Player />
 {/if}
 
-{#if !(data as any).found}
+{#if !data.found}
     <Header title="Profile Not Found" />
     <div class="container d-flex justify-content-center align-items-center" style="height: 80vh;">
         <div class="card text-center shadow-lg border-0 p-4 bg-body-tertiary" style="max-width: 420px;">
@@ -77,9 +78,9 @@
 
             <h1 class="text-center fs-4 mt-1">{username}</h1>
         </div>
-        <!-- <div class="row mb-1">
+        <div class="row mb-1">
             <Search tags={[]}></Search>
-        </div> -->
+        </div>
         <div class="row">
             <p class="text-center small text-muted">Only showing up to 25 videos for now. Profiles are very experimental</p>
             {#if data.videos.length === 0}
@@ -97,7 +98,7 @@
                     <Card
                         {i}
                         video={{
-                            id: 1,
+                            id: `${vid.file_key}${i}`,
                             name: vid.name,
                             format: 'video/mp4',
                             created_at: vid.created_at,
@@ -105,16 +106,21 @@
                             duration: vid.duration,
                             thumbnail_url: vid.thumbnail_url,
                             video_url: vid.video_url,
-                            size: vid.size
-                        } as any}
-                        isProfile={true} />
+                            size: vid.size,
+                            private: false,
+                            state: 'ready',
+                            version: vid.version,
+                            expires_at: -1
+                        }}
+                        isProfile={true}
+                        animDelay={0} />
                 {/each}
             {:else}
                 {#each data.videos as vid, i (vid.file_key)}
                     <Card
                         {i}
                         video={{
-                            id: 1,
+                            id: `${vid.file_key}${i}`,
                             name: vid.name,
                             format: 'video/mp4',
                             created_at: vid.created_at,
@@ -122,9 +128,14 @@
                             duration: vid.duration,
                             thumbnail_url: vid.thumbnail_url,
                             video_url: vid.video_url,
-                            size: vid.size
-                        } as any}
-                        isProfile={true} />
+                            size: vid.size,
+                            private: false,
+                            state: 'ready',
+                            version: vid.version,
+                            expires_at: -1
+                        }}
+                        isProfile={true}
+                        animDelay={0} />
                 {/each}
             {/if}
         </div>

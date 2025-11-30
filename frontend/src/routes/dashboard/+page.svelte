@@ -50,7 +50,6 @@
             observer = new IntersectionObserver((entries) => {
                 // Clean up
                 if (allLoaded()) {
-                    console.debug('Disconnecting sentinel')
                     observer?.disconnect()
 
                     if (sentinel?.parentNode) {

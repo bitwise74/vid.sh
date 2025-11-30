@@ -62,19 +62,22 @@ func (u *Uploader) Do(p, name, userID string, override ...string) (*model.File, 
 	errors := make(chan error, 3)
 	uploadedKeys := []string{}
 
-	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(time.Minute))
-	defer cancel()
-
 	if len(override) > 0 {
 		key = override[0]
 	}
+
+	thumbnailCtx, thumbnailCancel := context.WithTimeout(context.Background(), time.Second*15)
+	defer thumbnailCancel()
+
+	videoCtx, videoCancel := context.WithTimeout(context.Background(), time.Minute*5)
+	defer videoCancel()
 
 	// Thumbnail upload
 	go func() {
 		defer wg.Done()
 		zap.L().Debug("Starting upload_thumbnail subprocess")
 
-		_, err := u.S3.C.PutObject(ctx, &s3.PutObjectInput{
+		_, err := u.S3.C.PutObject(thumbnailCtx, &s3.PutObjectInput{
 			Bucket:       u.S3.Bucket,
 			Key:          aws.String(key + ".webp"),
 			Body:         thumbFile,
@@ -114,9 +117,9 @@ func (u *Uploader) Do(p, name, userID string, override ...string) (*model.File, 
 
 		var err error
 		if uploader != nil {
-			_, err = uploader.Upload(ctx, objectInput)
+			_, err = uploader.Upload(videoCtx, objectInput)
 		} else {
-			_, err = u.S3.C.PutObject(ctx, objectInput)
+			_, err = u.S3.C.PutObject(videoCtx, objectInput)
 		}
 		if err != nil {
 			errors <- fmt.Errorf("failed to upload video to s3, %w", err)
@@ -145,7 +148,8 @@ func (u *Uploader) Do(p, name, userID string, override ...string) (*model.File, 
 
 	for range 3 {
 		if err := <-errors; err != nil {
-			cancel()
+			videoCancel()
+			thumbnailCancel()
 
 			for _, id := range uploadedKeys {
 				_, err := u.S3.C.DeleteObject(context.Background(), &s3.DeleteObjectInput{

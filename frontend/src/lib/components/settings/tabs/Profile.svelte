@@ -1,11 +1,11 @@
 <script lang="ts">
-    import { PUBLIC_BASE_URL, PUBLIC_CDN_URL } from '$env/static/public'
-    import { UpdateUser } from '$lib/api/User'
+    import { PUBLIC_CDN_URL } from '$env/static/public'
+    import { UpdateUser, type UserUpdate } from '$lib/api/User'
     import { user } from '$lib/stores/AppVars'
     import { toastStore } from '$lib/stores/ToastStore'
 
     let usernameFieldState = $state<'idling' | 'taken' | 'error' | 'success'>('idling')
-    let timeout
+    let timeout: number
 
     function handleUploadAvatar() {
         const input = document.createElement('input')
@@ -69,30 +69,18 @@
         }, 1000)
     }
 
-    function toggleProfile(e: Event) {
-        const enabled = (e.target as HTMLInputElement).checked
+    function updateUser(e: Event, setting: keyof UserUpdate) {
+        const value = (e.target as HTMLInputElement).checked
 
         UpdateUser({
-            publicProfileEnabled: enabled
+            [setting]: value
         })
             .then(() => {
-                user.update((u) => ({ ...(u as any), publicProfileEnabled: enabled }))
-
-                if (!enabled) {
-                    toastStore.success({
-                        title: 'Public profile disabled'
-                    })
-                    return
-                }
-
-                toastStore.success({
-                    title: 'Done!',
-                    message: `<p>Your public profile is available <a href=${PUBLIC_BASE_URL}/u/${$user.username}>here</a></p>`
-                })
+                user.update((u) => ({ ...(u as any), [setting]: value }))
             })
             .catch((err) => {
                 toastStore.error({
-                    title: 'Failed to update public profile setting',
+                    title: `Failed to update ${setting} setting`,
                     message: err.message || 'Check the console for details'
                 })
             })
@@ -152,10 +140,13 @@
                 Your username will be shown in rich embeds and will be used for your @handle. You only need to set this if you want rich embeds or your public profile to work
             </p>
             <!-- <div class="col-md-6 col-lg-8 order-3 order-md-2"> -->
-            <input id="lossless_export" class="form-check-input" type="checkbox" checked={$user.publicProfileEnabled} onclick={(e) => toggleProfile(e)} />
+            <input id="lossless_export" class="form-check-input" type="checkbox" checked={$user.publicProfileEnabled} onclick={(e) => updateUser(e, 'publicProfileEnabled')} />
             <label for="lossless_export" class="form-label fw-semibold">Enable public profile</label>
             <p class="small text-muted">If toggled, a public profile will be created on which others can view videos you uploaded that are public. To enable this you need to set a username</p>
             <!-- </div> -->
+            <input id="default_private_videos" class="form-check-input" type="checkbox" checked={$user.defaultPrivateVideos} onclick={(e) => updateUser(e, 'defaultPrivateVideos')} />
+            <label for="default_private_videos" class="form-label fw-semibold">Mark new uploads as private by default</label>
+            <p class="small text-muted">Enabling this will automatically mark new uploaded videos as private, hiding them from your public profile</p>
         </div>
     </div>
 </div>

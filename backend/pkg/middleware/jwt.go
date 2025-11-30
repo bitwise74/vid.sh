@@ -144,7 +144,10 @@ func NewJWTMiddleware(d *gorm.DB) gin.HandlerFunc {
 			return
 		}
 
+		// Write some things to the context for later use
+		c.Set("userDefaultPrivateVideos", user.DefaultPrivateVideos)
 		c.Set("userID", userID)
+
 		c.Next()
 	}
 }

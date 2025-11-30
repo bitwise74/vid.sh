@@ -168,7 +168,7 @@ func Edit(c *gin.Context, d *types.Dependencies) {
 		temp.Seek(0, 0)
 
 		ctxReq := c.Request.Context()
-		ctxTimeout, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+		ctxTimeout, cancel := context.WithTimeout(context.Background(), time.Minute*10)
 		defer cancel()
 
 		ctx, cancelMerged := util.MergeContexts(ctxReq, ctxTimeout)
