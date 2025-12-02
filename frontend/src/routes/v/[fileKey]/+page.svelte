@@ -16,7 +16,7 @@
 </script>
 
 <svelte:head>
-    {#if d.file === undefined}
+    {#if d?.file === undefined}
         <meta property="og:title" content="No such file" />
         <meta property="og:description" content="Either the file doesn't exist, was deleted, or is private" />
         <meta property="og:url" content="https://bitwise0x.dev" />
@@ -36,7 +36,7 @@
     {/if}
 </svelte:head>
 
-{#if d.file === undefined}
+{#if d?.file === undefined}
     <h1>No such file</h1>
     <p>Either the file doesn't exist, was deleted, or is private</p>
 {:else}

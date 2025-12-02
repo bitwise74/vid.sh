@@ -21,6 +21,12 @@ type PasswdResetBody struct {
 	Email string `json:"email"`
 }
 
+type partialUser struct {
+	Verified bool
+	Email    string
+	ID       string
+}
+
 func PasswdReset(c *gin.Context, d *types.Dependencies) {
 	requestID := c.MustGet("requestID").(string)
 

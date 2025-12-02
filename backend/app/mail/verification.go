@@ -12,18 +12,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
-	"gorm.io/gorm"
 )
-
-type partialUser struct {
-	Email    string
-	Verified bool
-	ID       string
-}
 
 func VerificationMail(c *gin.Context, d *types.Dependencies) {
 	requestID := c.MustGet("requestID").(string)
 	userID := c.MustGet("userID").(string)
+	ctxUser := c.MustGet("ctxUser").(*model.User)
 
 	exp, err := redis.CheckPenalties(c.Request.Context(), c.ClientIP())
 	if err != nil {
@@ -40,29 +34,7 @@ func VerificationMail(c *gin.Context, d *types.Dependencies) {
 		return
 	}
 
-	var user partialUser
-	err = d.DB.Gorm.
-		Model(model.User{}).
-		Select("verified", "email").
-		Where("id = ?", userID).
-		First(&user).
-		Error
-	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
-			return
-		}
-
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":     "Internal server error",
-			"requestID": requestID,
-		})
-
-		zap.L().Error("Failed to fetch user", zap.String("requestID", requestID), zap.Error(err))
-		return
-	}
-
-	if user.Verified {
+	if ctxUser.Verified {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "user already verified"})
 		return
 	}
@@ -99,7 +71,7 @@ func VerificationMail(c *gin.Context, d *types.Dependencies) {
 		return
 	}
 
-	err = service.SendVerificationMail(token, user.Email)
+	err = service.SendVerificationMail(token, ctxUser.Email)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error":     "Internal server error",

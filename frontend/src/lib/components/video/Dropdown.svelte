@@ -10,9 +10,13 @@
         video: Video
         isProfile?: boolean
         isListView?: boolean
+        expanded?: boolean
+        position?: { x: number; y: number } | null
     }
 
-    const { video, isProfile = false }: Props = $props()
+    let { video, isProfile = false, expanded = false, position = null }: Props = $props()
+
+    const manualMenuStyle = $derived(expanded && position ? `--dropdown-x:${position.x}px;--dropdown-y:${position.y}px` : null)
 
     let showRenameModal = $state(false)
     let currentVideoId: string
@@ -138,10 +142,10 @@
 </script>
 
 <div class="dropdown-center">
-    <button class="btn btn-sm btn-outline-secondary rounded-3" type="button" data-bs-toggle="dropdown" aria-label="Options" aria-expanded="false">
+    <button class="btn btn-sm btn-outline-secondary rounded-3" type="button" data-bs-toggle="dropdown" aria-label="Options" aria-expanded={expanded}>
         <i class="bi-three-dots fs-6 fw-bold"></i>
     </button>
-    <ul class="dropdown-menu animate">
+    <ul class={`dropdown-menu animate${expanded && position ? ' show-manual' : ''}`} style={manualMenuStyle ?? undefined}>
         <li>
             <button class="dropdown-item" onclick={() => handleVideoAction('play')}><i class="bi bi-play me-2"></i>Play</button>
         </li>
@@ -196,5 +200,15 @@
 <style>
     .animate {
         animation: slidefade-in 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .dropdown-menu.show-manual {
+        display: block;
+        position: fixed;
+        inset: auto;
+        top: var(--dropdown-y, 0px);
+        left: var(--dropdown-x, 0px);
+        transform: translate(-50%, calc(-100% - 8px));
+        z-index: 1080;
     }
 </style>

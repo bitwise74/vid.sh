@@ -15,12 +15,26 @@
     }
 
     let animationSpeed: number = $state(1)
+    let dropdownExpanded = $state(false)
+    let dropdownPosition: { x: number; y: number } | null = $state(null)
+
+    let { video, isProfile = false, animDelay }: Props = $props()
 
     onMount(() => {
         animationSpeed = parseFloat(localStorage.getItem('optAnimationSpeed') || '1')
-    })
 
-    let { video, isProfile = false, i, animDelay }: Props = $props()
+        const handleWindowClick = () => {
+            if (dropdownExpanded) {
+                dropdownExpanded = false
+            }
+        }
+
+        window.addEventListener('click', handleWindowClick)
+
+        return () => {
+            window.removeEventListener('click', handleWindowClick)
+        }
+    })
 
     function handleOnTick(e: Event) {
         const input = e.target as HTMLInputElement
@@ -49,6 +63,12 @@
             }
         }
     }
+
+    function showContextMenu(event: MouseEvent) {
+        event.preventDefault()
+        dropdownPosition = { x: event.clientX, y: event.clientY }
+        dropdownExpanded = true
+    }
 </script>
 
 <!--
@@ -60,7 +80,7 @@
 {#if $dashboardView === 'list'}
     <div class="row justify-content-center card-animate" style="animation-delay:{animDelay}s" onanimationend={(e) => e.currentTarget.classList.remove('card-animate')}>
         <div class="col-xl-10">
-            <div class="card d-flex flex-row align-items-center border-0 rounded-3 bg-body-tertiary shadow-sm mb-1">
+            <div class="card d-flex flex-row align-items-center border-0 rounded-3 bg-body-tertiary shadow-sm mb-1" role="group" oncontextmenu={showContextMenu}>
                 <input type="checkbox" class="form-check-input m-3" aria-label="Select video" checked={$selected.includes(video.id)} onchange={handleOnTick} />
 
                 <div class="thumb position-relative rounded overflow-hidden" style="width:150px;height:92px;">
@@ -86,7 +106,7 @@
                 <div class="card-body flex-grow-1 p-3 d-flex flex-column">
                     <div class="d-flex align-items-center mb-2">
                         <h6 class="flex-grow-1 text-truncate mb-0 pe-3">{video.name.slice(0, -4)}</h6>
-                        <VideoDropdown {video} {isProfile} />
+                        <VideoDropdown {video} {isProfile} expanded={dropdownExpanded} position={dropdownPosition} />
                     </div>
                     <div class="d-flex align-items-center gap-3 small text-muted">
                         <span>{FormatSize(video.size)}</span>
@@ -99,9 +119,12 @@
             </div>
         </div>
     </div>
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
 {:else}
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div class="col-sm-6 col-12 col-lg-4 col-xl-3 mb-3 card-animate" style="animation-delay:{animDelay}s" onanimationend={(e) => e.currentTarget.classList.remove('card-animate')}>
-        <div class="card h-100 border-0 rounded-3 bg-body-tertiary shadow-sm">
+        <div class="card h-100 border-0 rounded-3 bg-body-tertiary shadow-sm" role="group" oncontextmenu={showContextMenu}>
             <div class="thumb position-relative bg-black rounded-3 aspect-video overflow-hidden">
                 {#if video.state == 'processing'}
                     <img src="placeholder.svg" alt="processing" class="w-100 h-100 object-fit-cover" />
@@ -125,7 +148,7 @@
             <div class="card-body p-3">
                 <div class="d-flex align-items-start justify-content-between mb-2">
                     <h6 class="flex-grow-1 text-truncate pe-3 mb-0">{video.name.slice(0, -4)}</h6>
-                    <VideoDropdown {video} {isProfile} />
+                    <VideoDropdown {video} {isProfile} expanded={dropdownExpanded} position={dropdownPosition} />
                 </div>
 
                 <div class="d-flex justify-content-between small text-muted">

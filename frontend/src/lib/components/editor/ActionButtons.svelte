@@ -1,11 +1,12 @@
 <script lang="ts">
     import { goto, invalidateAll } from '$app/navigation'
-    import { ExportVideo, UpdateFile, UploadFile } from '$lib/api/Files'
-    import { isLoggedIn, jobStats } from '$lib/stores/AppVars'
+    import { ExportVideo, UpdateFile, UploadFile, type Video } from '$lib/api/Files'
+    import { isLoggedIn, jobStats, user } from '$lib/stores/AppVars'
     import { isExporting, isSaving, selectedFile, settingsUnchanged, videoName } from '$lib/stores/EditOptions'
     import { AutoCopy } from '$lib/utils/autoCopy'
     import { DownloadBlob } from '$lib/utils/downloadBlob'
     import { GetExportCropCoords } from '$lib/utils/getExportCropCoordinates'
+    import { onMount } from 'svelte'
     import { toastStore } from '../../stores/ToastStore'
     import { losslessExport, targetSize, trimEnd, trimStart } from './../../stores/EditOptions'
 
@@ -15,10 +16,41 @@
     }
 
     let { videoID, turnstileToken }: Props = $props()
-    const disableBtn = (): boolean => $isExporting || $isSaving || $settingsUnchanged
 
-    async function redirectToDashboard() {
+    let isBusy = $derived($isExporting || $isSaving)
+    let isDisabled = $derived(isBusy || $settingsUnchanged)
+
+    onMount(() => {
+        if ('Notification' in window && Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+            Notification.requestPermission().then((permission) => {
+                if (permission === 'granted') {
+                    new Notification('Notifications Enabled', {
+                        body: 'You will now receive desktop notifications if anything important happens',
+                        icon: '/favicon.svg'
+                    })
+                }
+            })
+        }
+    })
+
+    function getEditOpts() {
+        const crop = GetExportCropCoords()
+
+        return {
+            losslessExport: $losslessExport,
+            targetSize: $targetSize,
+            trimStart: $trimStart,
+            trimEnd: $trimEnd,
+            cropH: crop.h,
+            cropW: crop.w,
+            cropX: crop.x,
+            cropY: crop.y
+        }
+    }
+
+    async function redirectToDashboard(video: Video) {
         await invalidateAll()
+        await AutoCopy(video.file_key)
         await goto('/dashboard')
     }
 
@@ -26,23 +58,8 @@
         if (!$selectedFile) return // Typeguard
 
         isExporting.set(true)
-        const crop = GetExportCropCoords()
 
-        const processedBlob = await ExportVideo(
-            $selectedFile,
-            {
-                losslessExport: $losslessExport,
-                targetSize: $targetSize,
-                trimStart: $trimStart,
-                trimEnd: $trimEnd,
-                cropH: crop.h,
-                cropW: crop.w,
-                cropX: crop.x,
-                cropY: crop.y
-            },
-            turnstileToken,
-            false
-        )
+        const processedBlob = await ExportVideo($selectedFile, getEditOpts(), turnstileToken, false)
             .catch((err) => {
                 toastStore.error({
                     title: 'Failed to export video',
@@ -67,7 +84,6 @@
         if (!$selectedFile) return
 
         isSaving.set(true)
-        const crop = GetExportCropCoords()
 
         if ($settingsUnchanged) {
             const video = await UploadFile($selectedFile)
@@ -86,25 +102,10 @@
 
             if (!video) return
 
-            await redirectToDashboard()
-            return await AutoCopy(video.id, video.file_key)
+            await redirectToDashboard(video)
         }
 
-        const video = await ExportVideo(
-            $selectedFile,
-            {
-                losslessExport: $losslessExport,
-                targetSize: $targetSize,
-                trimStart: $trimStart,
-                trimEnd: $trimEnd,
-                cropH: crop.h,
-                cropW: crop.w,
-                cropX: crop.x,
-                cropY: crop.y
-            },
-            turnstileToken,
-            true
-        )
+        const video = await ExportVideo($selectedFile, getEditOpts(), turnstileToken, true)
             .catch((err) => {
                 toastStore.error({
                     title: 'Failed to export video',
@@ -120,27 +121,16 @@
 
         if (!video) return // Typeguard
 
-        await redirectToDashboard()
-        await AutoCopy(video.id, video.file_key)
+        await redirectToDashboard(video)
     }
 
     async function handleUpdate() {
         if (!videoID) return // Typeguard
 
         isSaving.set(true)
-        const crop = GetExportCropCoords()
 
         const video = await UpdateFile(videoID, {
-            processing_options: {
-                losslessExport: $losslessExport,
-                targetSize: $targetSize,
-                trimStart: $trimStart,
-                trimEnd: $trimEnd,
-                cropH: crop.h,
-                cropW: crop.w,
-                cropX: crop.x,
-                cropY: crop.y
-            }
+            processing_options: getEditOpts()
         })
             .catch((err) => {
                 toastStore.error({
@@ -157,8 +147,7 @@
 
         if (!video) return // Typeguard
 
-        await redirectToDashboard()
-        await AutoCopy(video.id, video.file_key)
+        await redirectToDashboard(video)
     }
 </script>
 <!-- TODO: rewrite the player so it can handle very large files -->
@@ -167,7 +156,7 @@
         <!-- Editing an existing video -->
         <!-- TODO: add save as copy option -->
         {#if videoID}
-            <button class="btn btn-outline-warning" disabled={disableBtn()} onclick={handleUpdate}>
+            <button class="btn btn-outline-warning" disabled={isDisabled} onclick={handleUpdate}>
                 {#if $isSaving}
                     <span class="spinner-border spinner-border-sm me-2"></span>
                     Updating...
@@ -180,7 +169,7 @@
 
         <!-- Editing an uploaded video -->
         {#if !videoID}
-            <button class="btn btn-primary" disabled={disableBtn()} onclick={handleExport}>
+            <button class="btn btn-primary" disabled={isDisabled} onclick={handleExport}>
                 {#if $isExporting}
                     <span class="spinner-border spinner-border-sm me-2"></span>
                     Processing...
@@ -190,7 +179,7 @@
                 {/if}
             </button>
             {#if $isLoggedIn}
-                <button class="btn btn-outline-primary" disabled={disableBtn()} onclick={handleSave}>
+                <button class="btn btn-outline-primary" disabled={isDisabled} onclick={handleSave}>
                     {#if $isSaving}
                         <span class="spinner-border spinner-border-sm me-2"></span>
                         Saving...

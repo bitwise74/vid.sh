@@ -1,0 +1,10 @@
+# 0.1.1b
+
+- Fixed auto copying URLs from the editor not working correctly
+- Added an option to automatically mark newly uploaded files as private if the public profile is enabled
+- Fixed rich embeds using the wrong file identifier
+- Fixed invalid share URLs originating from public profiles (would result in a wrong file or a 404 error)
+- Fixed the video player going off screen for mobile aspect ratio videos
+- Added an option to recieve desktop notifications on important events like uploads failing or finishing: TODO FINISH
+- Improved performance for all requests by loading database user info into the request context during auth
+- Video card dropdown menus (the 3 dots one) can now be opened by right-clicking the card

@@ -30,8 +30,8 @@ func Edit(c *gin.Context, d *types.Dependencies) {
 	requestID := c.MustGet("requestID").(string)
 	userID := c.MustGet("userID").(string)
 
-	fileID := c.Param("id")
-	if fileID == "" {
+	fileKey := c.Param("id")
+	if fileKey == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error":     "No file ID provided",
 			"requestID": requestID,
@@ -69,7 +69,7 @@ func Edit(c *gin.Context, d *types.Dependencies) {
 
 	var file model.File
 	err := d.DB.Gorm.
-		Where("user_id = ? AND id = ?", userID, fileID).
+		Where("user_id = ? AND file_key = ?", userID, fileKey).
 		First(&file).
 		Error
 	if err != nil {
@@ -272,5 +272,5 @@ func Edit(c *gin.Context, d *types.Dependencies) {
 	c.JSON(http.StatusOK, file)
 
 	redis.InvalidateCache("user:" + userID)
-	redis.InvalidateCache("file:" + fileID)
+	redis.InvalidateCache("file:" + fileKey)
 }

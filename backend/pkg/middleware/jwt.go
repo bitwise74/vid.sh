@@ -133,7 +133,7 @@ func NewJWTMiddleware(d *gorm.DB) gin.HandlerFunc {
 				"requestID": requestID,
 			})
 
-			sslEnabled, err := strconv.ParseBool("HOST_SSL_ENABLED")
+			sslEnabled, err := strconv.ParseBool(os.Getenv("HOST_SSL_ENABLED"))
 			if err != nil {
 				sslEnabled = false
 			}
@@ -145,8 +145,8 @@ func NewJWTMiddleware(d *gorm.DB) gin.HandlerFunc {
 		}
 
 		// Write some things to the context for later use
-		c.Set("userDefaultPrivateVideos", user.DefaultPrivateVideos)
-		c.Set("userID", userID)
+		c.Set("ctxUser", &user)
+		c.Set("userID", user.ID)
 
 		c.Next()
 	}

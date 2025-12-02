@@ -25,6 +25,9 @@ interface ToastOpts {
     duration?: number
     dismissible?: boolean
     buttons?: Array<ToastButton>
+
+    // Will also trigger a desktop notification if permissions are granted
+    desktopNotification?: boolean
 }
 
 function createToastStore() {
@@ -48,6 +51,14 @@ function createToastStore() {
             }
 
             update((toasts) => [...toasts, newToast])
+
+            if (toast.desktopNotification) {
+                new Notification(toast.title, {
+                    body: toast.message,
+                    icon: '/favicon.svg'
+                })
+            }
+
             return toast.id
         },
         remove: (id: string) => {

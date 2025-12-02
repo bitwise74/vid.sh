@@ -23,6 +23,7 @@ type ChangeEmailBody struct {
 func ChangeEmail(c *gin.Context, d *types.Dependencies) {
 	requestID := c.MustGet("requestID").(string)
 	userID := c.MustGet("userID").(string)
+	oldEmail := c.MustGet("ctxUser").(*model.User).Email
 
 	// Check for penalties
 	exp, err := redis.CheckPenalties(c.Request.Context(), c.ClientIP())
@@ -56,26 +57,6 @@ func ChangeEmail(c *gin.Context, d *types.Dependencies) {
 			"requestID": requestID,
 		})
 		return
-	}
-
-	var oldEmail string
-
-	err = d.DB.Gorm.
-		Model(model.User{}).
-		Where("id = ?", userID).
-		Pluck("email", &oldEmail).
-		Error
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":     "Internal server error",
-			"requestID": requestID,
-		})
-
-		zap.L().Error("Failed to pluck old email address",
-			zap.String("requestID", requestID),
-			zap.String("userID", userID),
-			zap.Error(err),
-		)
 	}
 
 	expiresAt := time.Now().Add(time.Minute * 30)

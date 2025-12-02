@@ -8,7 +8,6 @@ import (
 	"bitwise74/video-api/pkg/util"
 	"bitwise74/video-api/pkg/validators"
 	"context"
-	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -174,7 +173,6 @@ func Upload(c *gin.Context, d *types.Dependencies) {
 		return
 	}
 
-	fmt.Println(userDefaultPrivateVideos)
 	fileEnt.Private = userDefaultPrivateVideos
 
 	tx := d.DB.Gorm.Begin()
