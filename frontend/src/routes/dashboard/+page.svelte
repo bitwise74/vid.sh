@@ -189,7 +189,7 @@
     <title>Dashboard - vid.sh</title>
 </svelte:head>
 
-<div class="min-vh-100 position-relative">
+<div class="min-vh-100 position-relative gradient-bg-dark">
     <div
         class="position-fixed w-100 h-100 bg-dark d-none justify-content-center align-items-center z-3
            start-0 top-0 bg-opacity-50"

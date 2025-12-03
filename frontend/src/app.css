@@ -9,15 +9,19 @@
 }
 
 [data-bs-theme='dark'] {
-    --bs-body-bg: #0d0d0f;
+    --bs-body-bg: #090909;
     --bs-body-color: #ffffff;
     --btn-dynamic: #0d0d0d;
-    --bs-tertiary-bg-rgb: 25, 25, 25;
+    --bs-tertiary-bg-rgb: 09, 09, 09;
     --gradient-bg-lin: linear-gradient(135deg, rgba(124, 58, 237, 0.2), #3b83f62b 100%);
 }
 
 .gradient-bg {
     background: var(--gradient-bg-lin);
+}
+
+.gradient-bg-dark {
+    background: linear-gradient(135deg, #110C26, #060a15 100%);
 }
 
 .bg-purple {
