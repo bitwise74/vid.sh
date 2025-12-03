@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { trimEnd, trimStart, videoDuration } from '$lib/stores/EditOptions'
+    import { isPreciseTrimming, trimEnd, trimStart, videoDuration } from '$lib/stores/EditOptions'
     import { currentTime } from '$lib/stores/VideoStore'
     import RangeSlider from 'svelte-range-slider-pips'
     import { get } from 'svelte/store'
@@ -123,8 +123,9 @@
         </div>
     </div>
 
-    <div class="small text-muted user-select-none">
-        New duration: {formatTime($trimEnd - $trimStart)}<br />
-        Tip: Click on the timestamps to edit
+    <div class="tab-pane user-select-none" id="crop-tab">
+        <input class="form-check-input" type="checkbox" id="toggle-precise-trimming" bind:checked={$isPreciseTrimming} />
+        <label for="toggle-precise-trimming" class="small">Precise trimming</label>
+        <p class="text-muted small">This allows for frame-accurate trimming of the video, but may increase processing time.</p>
     </div>
 </div>

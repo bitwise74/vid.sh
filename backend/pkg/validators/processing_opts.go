@@ -7,16 +7,17 @@ import (
 )
 
 type ProcessingOptions struct {
-	File           *multipart.FileHeader `form:"file"`
-	TrimStart      float64               `form:"trimStart"`
-	TrimEnd        float64               `form:"trimEnd"`
-	TargetSize     float64               `form:"targetSize"`
-	LosslessExport bool                  `form:"losslessExport"`
-	SaveToCloud    bool                  `form:"saveToCloud"`
-	CropX          int                   `form:"crop[x]"`
-	CropY          int                   `form:"crop[y]"`
-	CropW          int                   `form:"crop[w]"`
-	CropH          int                   `form:"crop[h]"`
+	File            *multipart.FileHeader `form:"file"`
+	TrimStart       float64               `form:"trimStart"`
+	TrimEnd         float64               `form:"trimEnd"`
+	TargetSize      float64               `form:"targetSize"`
+	LosslessExport  bool                  `form:"losslessExport"`
+	SaveToCloud     bool                  `form:"saveToCloud"`
+	PreciseTrimming bool                  `form:"preciseTrimming"`
+	CropX           int                   `form:"crop[x]"`
+	CropY           int                   `form:"crop[y]"`
+	CropW           int                   `form:"crop[w]"`
+	CropH           int                   `form:"crop[h]"`
 
 	// Private
 	ShouldCrop bool

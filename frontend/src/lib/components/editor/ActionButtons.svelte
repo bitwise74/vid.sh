@@ -2,7 +2,7 @@
     import { goto, invalidateAll } from '$app/navigation'
     import { ExportVideo, UpdateFile, UploadFile, type Video } from '$lib/api/Files'
     import { isLoggedIn, jobStats, user } from '$lib/stores/AppVars'
-    import { isExporting, isSaving, selectedFile, settingsUnchanged, videoName } from '$lib/stores/EditOptions'
+    import { isExporting, isPreciseTrimming, isSaving, selectedFile, settingsUnchanged, videoName } from '$lib/stores/EditOptions'
     import { AutoCopy } from '$lib/utils/autoCopy'
     import { DownloadBlob } from '$lib/utils/downloadBlob'
     import { GetExportCropCoords } from '$lib/utils/getExportCropCoordinates'
@@ -41,6 +41,7 @@
             targetSize: $targetSize,
             trimStart: $trimStart,
             trimEnd: $trimEnd,
+            preciseTrimming: $isPreciseTrimming,
             cropH: crop.h,
             cropW: crop.w,
             cropX: crop.x,

@@ -8,6 +8,7 @@
     import '../app.css'
 
     const { data, children }: any = $props()
+    let canLoad = $state(false)
 
     $effect(() => {
         if (data.loggedIn) {
@@ -25,9 +26,12 @@
 
     onMount(() => {
         dashboardView.set(localStorage.getItem('view') || 'grid')
+        canLoad = true
     })
 </script>
 
-{@render children?.()}
+{#if canLoad}
+    {@render children?.()}
+{/if}
 
 <ToastContainer />

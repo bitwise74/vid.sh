@@ -6,8 +6,6 @@
 
     let timeout: number | undefined
 
-    let { tags }: { tags: any[] } = $props()
-
     // Debounce requests
     function handleInput(e: any) {
         clearTimeout(timeout)
@@ -33,96 +31,161 @@
         clearTimeout(timeout)
     })
 </script>
-<div class="row g-3 mb-4">
-    <div class="d-flex justify-content-center">
-        <div class="input-group shadow-sm" style="max-width: 500px;">
-            <span class="input-group-text bg-opacity-75">
-                <i class="bi-search"></i>
-            </span>
-            <input type="text" class="form-control rounded-end-3" placeholder="Search videos..." oninput={handleInput} />
-            <!-- <button disabled class="input-group-text dropdown-toggle bg-opacity-75" aria-label="filters" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
-                <i class="bi-funnel"></i>
-            </button> -->
-            <div class="dropdown-center">
-                <ul class="dropdown-menu p-3 animate" style="min-width: 600px; max-width: 800px;">
-                    <li>
-                        <div class="row g-3">
-                            <div class="col-md-4">
-                                <label class="form-label small text-muted" for="filter-by">Filter by</label>
-                                <select class="form-select" id="filter-by"> </select>
-                            </div>
 
-                            <div class="col-md-4">
-                                <label class="form-label small text-muted" for="sort-by">Sort by</label>
-                                <select class="form-select" id="sort-by">
-                                    <option value="latest">Latest</option>
-                                    <option value="popular">Most Popular</option>
-                                    <option value="rating">Highest Rated</option>
-                                </select>
-                            </div>
+<div class="search-panel">
+    <div class="search-panel__primary">
+        <label class="search-field" for="dashboard-search">
+            <i class="bi bi-search"></i>
+            <input id="dashboard-search" type="text" placeholder="Search your library" oninput={handleInput} />
+        </label>
 
-                            <div class="col-md-4">
-                                <label class="form-label small text-muted" for="results-per-page">Results per page</label>
-                                <select bind:value={$perPage} class="form-select" id="results-per-page">
-                                    <option value="10">10</option>
-                                    <option value="20" selected>20</option>
-                                    <option value="50">50</option>
-                                    <option value="100">100</option>
-                                </select>
-                            </div>
+        <button type="button" class="chip-button" disabled>
+            <i class="bi bi-funnel"></i>
+            Filters soon
+        </button>
+    </div>
 
-                            <div class="col-md-12">
-                                <p class="form-label small text-muted user-select-none mb-2">Tags</p>
-                                <div class="p-2 border rounded" style="max-height: 120px; overflow-y: auto;">
-                                    {#each tags as tag, i}
-                                        <input class="form-check-input" type="checkbox" value="1" id={`tag${i}`} />
-                                        <label class="form-check-input" for={`tag${i}`}>
-                                            {tag.name} <span class="text-muted">({tag.assignedCount})</span>
-                                        </label>
-                                    {/each}
-                                </div>
-                            </div>
-                        </div>
-                    </li>
-
-                    <li class="mt-3 pt-2 border-top">
-                        <div class="d-flex justify-content-end gap-2">
-                            <button type="button" class="btn btn-sm btn-outline-secondary">Clear</button>
-                            <button type="button" class="btn btn-sm btn-primary">Apply</button>
-                        </div>
-                    </li>
-                </ul>
-            </div>
+    <div class="search-panel__secondary">
+        <div class="control-block">
+            <span class="control-label">Results</span>
+            <select bind:value={$perPage} aria-label="Results per page">
+                <option value="10">10 / page</option>
+                <option value="20">20 / page</option>
+                <option value="50">50 / page</option>
+                <option value="100">100 / page</option>
+            </select>
         </div>
 
-        <div class="input-group-text ms-3 bg-opacity-75 rounded-3">
-            <button
-                type="button"
-                class="btn bg-transparent border-0 m-0 p-1"
-                data-bs-toggle="tooltip"
-                aria-label="Toggle list view"
-                data-placement="top"
-                title="Toggle list view"
-                onclick={() => toggleView('list')}>
-                <i class="bi-list-ul"></i>
+        <div class="view-toggle" role="group" aria-label="Toggle layout">
+            <button type="button" class:selected={$dashboardView === 'list'} onclick={() => toggleView('list')}>
+                <i class="bi bi-list-ul"></i>
+                <span>List</span>
             </button>
-            <div class="vr m-2"></div>
-            <button
-                type="button"
-                class="btn bg-transparent border-0 m-0 p-1"
-                data-bs-toggle="tooltip"
-                aria-label="Toggle grid view"
-                data-placement="top"
-                title="Toggle list view"
-                onclick={() => toggleView('grid')}>
-                <i class="bi-grid-3x3"></i>
+            <button type="button" class:selected={$dashboardView === 'grid'} onclick={() => toggleView('grid')}>
+                <i class="bi bi-grid-3x3"></i>
+                <span>Grid</span>
             </button>
         </div>
     </div>
 </div>
 
 <style>
-    .animate {
-        animation: slidefade-in 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    .search-panel {
+        border: 1px solid var(--dashboard-surface-border);
+        border-radius: 1.5rem;
+        padding: 1.5rem;
+        background: var(--dashboard-surface-bg);
+        box-shadow: var(--dashboard-surface-shadow);
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+        color: var(--dashboard-text-primary);
+    }
+
+    .search-panel__primary,
+    .search-panel__secondary {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .search-field {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        border-radius: 999px;
+        padding: 0.75rem 1.25rem;
+        border: 1px solid var(--dashboard-chip-border);
+        color: var(--dashboard-text-muted);
+        cursor: text;
+        background: var(--dashboard-card-bg);
+    }
+
+    .search-field input {
+        flex: 1;
+        border: none;
+        background: transparent;
+        color: var(--dashboard-text-primary);
+    }
+
+    .search-field input:focus {
+        outline: none;
+    }
+
+    .chip-button {
+        border-radius: 999px;
+        border: 1px solid var(--dashboard-chip-border);
+        padding: 0.65rem 1.2rem;
+        background: var(--dashboard-chip-bg);
+        color: var(--dashboard-text-muted);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.85rem;
+    }
+
+    .control-block {
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+        color: var(--dashboard-text-muted);
+    }
+
+    .control-block select {
+        background: var(--dashboard-card-bg);
+        color: var(--dashboard-text-primary);
+        border: 1px solid var(--dashboard-chip-border);
+        border-radius: 0.75rem;
+        padding: 0.4rem 0.8rem;
+        min-width: 140px;
+    }
+
+    .view-toggle {
+        display: inline-flex;
+        border: 1px solid var(--dashboard-chip-border);
+        border-radius: 999px;
+        overflow: hidden;
+        background: var(--dashboard-chip-bg);
+    }
+
+    .view-toggle button {
+        border: none;
+        background: transparent;
+        color: var(--dashboard-text-muted);
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        cursor: pointer;
+    }
+
+    .view-toggle button.selected {
+        background: linear-gradient(90deg, #7f00ff, #007fff);
+        color: #fff;
+    }
+
+    :global(.stack-collapsed .dashboard-stack__search .search-panel) {
+        margin-bottom: 0;
+    }
+
+    @media (max-width: 768px) {
+        .search-panel__secondary {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .view-toggle {
+            width: 100%;
+            justify-content: space-between;
+        }
+
+        .view-toggle button {
+            flex: 1;
+            justify-content: center;
+        }
     }
 </style>

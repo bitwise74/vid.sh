@@ -32,6 +32,7 @@ export type VideoProcessingOpts = {
     trimEnd: number
     targetSize: number
     losslessExport: boolean
+    preciseTrimming: boolean
     cropX: number
     cropY: number
     cropW: number
@@ -232,6 +233,7 @@ export async function ExportVideo(f: File, o: VideoProcessingOpts, token: string
     form.append('targetSize', `${o.targetSize}`)
     form.append('losslessExport', `${o.losslessExport}`)
     form.append('saveToCloud', `${saveToCloud}`)
+    form.append("preciseTrimming", `${o.preciseTrimming}`)
     form.append('crop[x]', `${o.cropX}`)
     form.append('crop[y]', `${o.cropY}`)
     form.append('crop[w]', `${o.cropW}`)

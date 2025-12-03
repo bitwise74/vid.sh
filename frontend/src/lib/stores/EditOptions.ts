@@ -8,6 +8,8 @@ export const exportFps = writable("Don't change")
 
 export const trimStart = writable(0)
 export const trimEnd = writable(0)
+export const isPreciseTrimming = writable(false)
+
 export const videoDuration = writable(0)
 export const videoName = writable('')
 

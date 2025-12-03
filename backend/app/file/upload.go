@@ -22,7 +22,7 @@ import (
 func Upload(c *gin.Context, d *types.Dependencies) {
 	requestID := c.MustGet("requestID").(string)
 	userID := c.MustGet("userID").(string)
-	userDefaultPrivateVideos := c.MustGet("userDefaultPrivateVideos").(bool)
+	defaultPrivateVideos := c.MustGet("ctxUser").(*model.User).DefaultPrivateVideos
 
 	fh, err := c.FormFile("file")
 	if err != nil {
@@ -173,7 +173,7 @@ func Upload(c *gin.Context, d *types.Dependencies) {
 		return
 	}
 
-	fileEnt.Private = userDefaultPrivateVideos
+	fileEnt.Private = defaultPrivateVideos
 
 	tx := d.DB.Gorm.Begin()
 

@@ -121,10 +121,14 @@ func (q *JobQueue) MakeFFmpegFlags(opts *validators.ProcessingOptions, p string)
 	var duration float64
 	var err error
 
-	args = append(args, "-i", p)
-
 	if opts.TrimStart > 0 {
-		args = append(args, "-ss", util.FloatToTimestamp(opts.TrimStart))
+		if !opts.PreciseTrimming {
+			args = append(args, "-ss", util.FloatToTimestamp(opts.TrimStart))
+			args = append(args, "-i", p)
+		} else {
+			args = append(args, "-i", p)
+			args = append(args, "-ss", util.FloatToTimestamp(opts.TrimStart))
+		}
 	}
 
 	if opts.TrimEnd > 0 && opts.TrimStart >= 0 {
@@ -167,6 +171,29 @@ func (q *JobQueue) MakeFFmpegFlags(opts *validators.ProcessingOptions, p string)
 			"-maxrate", videoBitrateStr,
 			"-bufsize", bufSizeStr,
 		)
+	} else {
+		const maxRate = "4M"
+		const bufSize = "8M"
+
+		switch encoder {
+		case "libx264":
+			args = append(args,
+				"-preset", "fast",
+				"-crf", "25",
+			)
+
+		case "h264_nvenc", "hevc_nvenc":
+			args = append(args,
+				"-rc", "vbr",
+				"-cq", "30",
+				"-preset", "p3",
+				"-maxrate", maxRate,
+				"-bufsize", bufSize,
+			)
+
+		default:
+			args = append(args, "-b:v", maxRate)
+		}
 	}
 
 	args = append(args,

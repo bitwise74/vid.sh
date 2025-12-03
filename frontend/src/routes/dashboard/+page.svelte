@@ -19,6 +19,7 @@
     let dropOverlay: HTMLElement | null = null
     let sentinel: Element | null = null
     let observer: IntersectionObserver | null = null
+    let statsCollapsed = $state(false)
 
     const allLoaded = () => {
         // TODO: find way to not spam requests
@@ -183,16 +184,19 @@
     }
 
     $effect(() => videoSelectionToast.subscribe(() => {}))
+
+    function handleStatsMode(event: CustomEvent<boolean>) {
+        statsCollapsed = event.detail
+    }
 </script>
 
 <svelte:head>
     <title>Dashboard - vid.sh</title>
 </svelte:head>
 
-<div class="min-vh-100 position-relative gradient-bg-dark">
+<div class="dashboard-root min-vh-100 position-relative gradient-bg-dark">
     <div
-        class="position-fixed w-100 h-100 bg-dark d-none justify-content-center align-items-center z-3
-           start-0 top-0 bg-opacity-50"
+        class="drop-overlay position-fixed w-100 h-100 d-none justify-content-center align-items-center z-3 start-0 top-0"
         id="dropOverlay"
         role="none"
         ondragenter={showOverlay}
@@ -200,28 +204,158 @@
         ondragend={hideOverlay}
         ondragleave={hideOverlay}
         ondrop={handleDrop}>
-        <div class="border-3 border-light rounded-3 border border-dashed p-5 text-center">
-            <i class="bi bi-cloud-upload text-light display-1 mb-3"></i>
-            <h3 class="text-light fw-semibold">Drop files to upload</h3>
+        <div class="drop-overlay__panel">
+            <i class="bi bi-cloud-upload mb-3"></i>
+            <h3>Drop files to upload</h3>
+            <p>MP4, MOV, or MKV up to your plan limits</p>
         </div>
     </div>
 
     <Header title="Dashboard" page="dashboard" />
-    <main class="container py-4">
-        <StatBlocks />
-        <Search tags={[]} />
-        <VideoList />
+    <main class="dashboard-main container py-4 py-md-5">
+        <div class={`dashboard-stack ${statsCollapsed ? 'stack-collapsed' : ''}`}>
+            <div class="dashboard-stack__stats">
+                <StatBlocks on:modeChange={handleStatsMode} />
+            </div>
+            <div class="dashboard-stack__search">
+                <Search />
+            </div>
+        </div>
 
-        <div bind:this={sentinel}></div>
+        <section class="video-panel glass-panel">
+            <div class="video-panel__header">
+                <div>
+                    <p class="eyebrow">Your uploads</p>
+                    <h3 class="section-title">Browse and manage</h3>
+                </div>
+                <span class="section-hint">{$loadedVideosCount} / {$user.stats?.uploadedFiles || 0} videos</span>
+            </div>
+            <VideoList />
+        </section>
+
+        <div bind:this={sentinel} class="infinite-sentinel"></div>
     </main>
 
     <div class="text-center mb-4">
         {#if $user && $user.stats && $user.stats.uploadedFiles != 0 && $user.stats.uploadedFiles > parseInt(perPage)}
             {#if !allLoaded()}
                 <p class="text-muted small">Scroll down to load more</p>
-            {:else}
-                <p class="text-muted small">All videos loaded</p>
             {/if}
         {/if}
     </div>
 </div>
+
+<style>
+    .dashboard-root {
+        padding-bottom: 4rem;
+    }
+
+    .dashboard-main {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .dashboard-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .dashboard-stack__stats,
+    .dashboard-stack__search {
+        width: 100%;
+    }
+
+    .glass-panel {
+        border: 1px solid var(--dashboard-surface-border);
+        border-radius: 2rem;
+        padding: 2rem;
+        background: var(--dashboard-surface-bg);
+        box-shadow: var(--dashboard-surface-shadow);
+        color: var(--dashboard-text-primary);
+    }
+
+    .video-panel__header {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        align-items: baseline;
+        margin-bottom: 1.25rem;
+    }
+
+    .eyebrow {
+        text-transform: uppercase;
+        letter-spacing: 0.25em;
+        font-size: 0.7rem;
+        color: var(--dashboard-text-muted);
+        margin-bottom: 0.35rem;
+    }
+
+    .section-title {
+        margin: 0;
+        font-size: 1.5rem;
+    }
+
+    .section-hint {
+        color: var(--dashboard-text-muted);
+        font-size: 0.9rem;
+    }
+
+    .drop-overlay {
+        background: var(--dashboard-overlay);
+        backdrop-filter: blur(8px);
+    }
+
+    .drop-overlay__panel {
+        border: 1.5px dashed var(--dashboard-overlay-panel-border);
+        border-radius: 1.5rem;
+        padding: 2.5rem 3rem;
+        text-align: center;
+        color: var(--dashboard-text-primary);
+        background: var(--dashboard-overlay-panel-bg);
+        box-shadow: var(--dashboard-surface-shadow);
+    }
+
+    .drop-overlay__panel i {
+        font-size: 3rem;
+        color: #7f5dff;
+    }
+
+    .drop-overlay__panel p {
+        margin: 0;
+        color: var(--dashboard-text-muted);
+    }
+
+    .infinite-sentinel {
+        height: 1px;
+    }
+
+    @media (min-width: 992px) {
+        .dashboard-stack.stack-collapsed {
+            flex-direction: row;
+            align-items: flex-start;
+            gap: 1.5rem;
+        }
+
+        .dashboard-stack.stack-collapsed .dashboard-stack__stats {
+            flex: 0 0 360px;
+        }
+
+        .dashboard-stack.stack-collapsed .dashboard-stack__search {
+            flex: 1;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .glass-panel {
+            padding: 1.5rem;
+            border-radius: 1.5rem;
+        }
+
+        .video-panel__header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+    }
+</style>

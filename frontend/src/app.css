@@ -6,6 +6,22 @@
     --bs-tertiary-bg-rgb: 255, 255, 255;
     --gradient-bg-lin: linear-gradient(135deg, #f3e8ff 0%, #dbeafe 50%, #e0e7ff 100%);
     --btn-dynamic: #ffffff;
+    --dashboard-surface-bg: rgba(255, 255, 255, 0.9);
+    --dashboard-surface-border: rgba(15, 23, 42, 0.12);
+    --dashboard-surface-shadow: 0 25px 80px rgba(15, 15, 15, 0.12);
+    --dashboard-card-bg: rgba(248, 249, 252, 0.95);
+    --dashboard-card-border: rgba(15, 23, 42, 0.1);
+    --dashboard-text-primary: #0f172a;
+    --dashboard-text-muted: rgba(15, 23, 42, 0.6);
+    --dashboard-chip-bg: rgba(15, 23, 42, 0.05);
+    --dashboard-chip-border: rgba(15, 23, 42, 0.12);
+    --dashboard-overlay: rgba(12, 17, 34, 0.7);
+    --dashboard-overlay-panel-bg: rgba(255, 255, 255, 0.95);
+    --dashboard-overlay-panel-border: rgba(15, 23, 42, 0.2);
+    --dashboard-thumb-overlay: rgba(15, 15, 30, 0.35);
+    --dashboard-progress-bg: rgba(15, 23, 42, 0.12);
+    --dashboard-progress-fill: linear-gradient(90deg, #7f00ff, #007fff);
+    --dashboard-page-gradient: linear-gradient(135deg, #f7f7ff 0%, #f1f5ff 50%, #ffffff 100%);
 }
 
 [data-bs-theme='dark'] {
@@ -14,14 +30,31 @@
     --btn-dynamic: #0d0d0d;
     --bs-tertiary-bg-rgb: 09, 09, 09;
     --gradient-bg-lin: linear-gradient(135deg, rgba(124, 58, 237, 0.2), #3b83f62b 100%);
+    --dashboard-surface-bg: rgba(10, 12, 20, 0.85);
+    --dashboard-surface-border: rgba(255, 255, 255, 0.08);
+    --dashboard-surface-shadow: 0 30px 90px rgba(0, 0, 0, 0.55);
+    --dashboard-card-bg: rgba(13, 15, 24, 0.9);
+    --dashboard-card-border: rgba(255, 255, 255, 0.1);
+    --dashboard-text-primary: #f8fafc;
+    --dashboard-text-muted: rgba(248, 250, 252, 0.6);
+    --dashboard-chip-bg: rgba(255, 255, 255, 0.08);
+    --dashboard-chip-border: rgba(255, 255, 255, 0.12);
+    --dashboard-overlay: rgba(5, 8, 18, 0.8);
+    --dashboard-overlay-panel-bg: rgba(8, 10, 18, 0.9);
+    --dashboard-overlay-panel-border: rgba(255, 255, 255, 0.25);
+    --dashboard-thumb-overlay: rgba(0, 0, 0, 0.35);
+    --dashboard-progress-bg: rgba(255, 255, 255, 0.12);
+    --dashboard-progress-fill: linear-gradient(90deg, #a855f7, #38bdf8);
+    --dashboard-page-gradient: linear-gradient(135deg, #110c26, #060a15 100%);
 }
+
 
 .gradient-bg {
     background: var(--gradient-bg-lin);
 }
 
 .gradient-bg-dark {
-    background: linear-gradient(135deg, #110C26, #060a15 100%);
+    background: var(--dashboard-page-gradient);
 }
 
 .bg-purple {
@@ -83,6 +116,7 @@
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
+    line-clamp: 2;
     overflow: hidden;
 }
 

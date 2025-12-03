@@ -8,3 +8,7 @@
 - Added an option to recieve desktop notifications on important events like uploads failing or finishing: TODO FINISH
 - Improved performance for all requests by loading database user info into the request context during auth
 - Video card dropdown menus (the 3 dots one) can now be opened by right-clicking the card
+- Videos will now be in a better quality by default if no compression settings are checked
+- Added a new "Precise trimming" option which allows to trim with sub-ms precision at the cost of longer processing times. By default non-precise editing is enabled which may result in the first couple of frames appearing frozen.
+- Fixed an error where refreshing the editor page would redirect back to the main page with a "You must be logged in" error
+- Redesigned the stats block in the dashboard page to show more information
